@@ -1,12 +1,13 @@
 import 'dart:convert';
-import 'dart:developer' as developer; // Added import
+import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/barang.dart';
 import '../models/kategori.dart';
+import '../models/delivery.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://172.16.0.4:8000/api';
+  static const String baseUrl = 'http://172.16.7.144:8000/api';
   String? _token;
 
   Future<void> _ensureTokenLoaded() async {
@@ -27,7 +28,6 @@ class ApiClient {
     await prefs.remove('token');
     await prefs.remove('role');
     await prefs.remove('user');
-    _token = null;
   }
 
   Future<Map<String, String>> get _headers async {
@@ -159,6 +159,45 @@ class ApiClient {
       }
     } catch (e) {
       throw Exception('Logout error: $e');
+    }
+  }
+
+  // New method: Fetch delivery history
+  Future<List<Delivery>> getDeliveryHistory() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/kurir/deliveries'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        final List jsonResponse = jsonDecode(response.body);
+        return jsonResponse.map((data) => Delivery.fromJson(data)).toList();
+      } else {
+        throw Exception(
+            'Failed to load delivery history (${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Error getting delivery history: $e');
+    }
+  }
+
+  // New method: Update delivery status
+  Future<void> updateDeliveryStatus(int deliveryId, String status) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/kurir/deliveries/update'),
+        headers: await _headers,
+        body: jsonEncode({
+          'delivery_id': deliveryId,
+          'status': status,
+        }),
+      );
+      if (response.statusCode != 200) {
+        final body = jsonDecode(response.body);
+        throw Exception(body['message'] ?? 'Failed to update delivery status');
+      }
+    } catch (e) {
+      throw Exception('Error updating delivery status: $e');
     }
   }
 }

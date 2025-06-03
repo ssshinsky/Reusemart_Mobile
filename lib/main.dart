@@ -6,7 +6,8 @@ import 'services/api_client.dart';
 import 'models/barang.dart';
 import 'models/kategori.dart';
 import 'view/login.dart';
-import 'dart:convert'; // Untuk jsonDecode
+import 'view/kurir/kurir_dashboard.dart';
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
@@ -14,6 +15,16 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
+  Future<Map<String, dynamic>> _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final role = prefs.getString('role');
+    final userJson = prefs.getString('user');
+    final user = userJson != null ? jsonDecode(userJson) : null;
+
+    return {'isLoggedIn': token != null, 'role': role, 'user': user};
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +34,23 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.green,
         textTheme: GoogleFonts.poppinsTextTheme(),
       ),
-      home: const HomeScreen(),
+      home: FutureBuilder<Map<String, dynamic>>(
+        future: _checkLoginStatus(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final data = snapshot.data ?? {};
+          final isLoggedIn = data['isLoggedIn'] ?? false;
+          final role = data['role'];
+          if (isLoggedIn && role == 'pegawai') {
+            return KurirDashboardScreen();
+          } else if (isLoggedIn) {
+            return HomeScreen(role: role, user: data['user']);
+          }
+          return const LoginPage(); // Arahkan ke LoginPage jika belum login
+        },
+      ),
     );
   }
 }
@@ -68,17 +95,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final userJson = prefs.getString('user');
     final user = userJson != null ? jsonDecode(userJson) : null;
 
-    return {
-      'isLoggedIn': token != null,
-      'role': role,
-      'user': user,
-    };
+    return {'isLoggedIn': token != null, 'role': role, 'user': user};
   }
 
   // Fungsi untuk logout
   Future<void> _logout() async {
     await apiClient.clearToken();
-    setState(() {});
+    setState(() {}); // Pastikan ini diperlukan, jika tidak, bisa dihapus
     if (mounted) {
       Navigator.pushReplacement(
         context,
@@ -136,7 +159,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const LoginPage()),
+                        builder: (context) => const LoginPage(),
+                      ),
                     );
                   }
                 },
@@ -162,8 +186,10 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             // Carousel Banner
             Container(
-              margin:
-                  const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
+              margin: const EdgeInsets.symmetric(
+                vertical: 16.0,
+                horizontal: 8.0,
+              ),
               child: CarouselSlider.builder(
                 itemCount: banners.length,
                 itemBuilder: (context, index, realIndex) {
@@ -415,14 +441,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   child: barang.gambar.isNotEmpty
                                       ? Image.network(
-                                          'http://172.16.0.4:8000/storage/${barang.gambar[0].gambarBarang}',
+                                          'http://172.16.7.144:8000/storage/${barang.gambar[0].gambarBarang}',
                                           fit: BoxFit.cover,
                                           width: double.infinity,
                                           errorBuilder:
                                               (context, error, stackTrace) =>
-                                                  Icon(Icons.broken_image,
-                                                      size: 50,
-                                                      color: Colors.grey[400]),
+                                                  Icon(
+                                            Icons.broken_image,
+                                            size: 50,
+                                            color: Colors.grey[400],
+                                          ),
                                         )
                                       : Icon(
                                           Icons.image_not_supported,
@@ -475,8 +503,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2E7D32),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -511,10 +541,7 @@ class BarangDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'Detail Barang',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
         ),
         backgroundColor: const Color(0xFF2E7D32),
         elevation: 6,
@@ -557,7 +584,7 @@ class BarangDetailScreen extends StatelessWidget {
                       children: [
                         barang.gambar.isNotEmpty
                             ? Image.network(
-                                'http://172.16.0.4:8000/storage/${barang.gambar[0].gambarBarang}',
+                                'http://172.16.7.144:8000/storage/${barang.gambar[0].gambarBarang}',
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) =>
                                     Container(color: Colors.grey[300]),
@@ -608,7 +635,9 @@ class BarangDetailScreen extends StatelessWidget {
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.green[100],
                         borderRadius: BorderRadius.circular(20),
@@ -630,10 +659,7 @@ class BarangDetailScreen extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       'Garansi: ${barang.statusGaransi}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                     ),
                   ],
                 ),
@@ -692,8 +718,11 @@ class BarangDetailScreen extends StatelessWidget {
                           ),
                           Row(
                             children: [
-                              Icon(Icons.star,
-                                  size: 16, color: Colors.yellow[700]),
+                              Icon(
+                                Icons.star,
+                                size: 16,
+                                color: Colors.yellow[700],
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 '${barang.transaksiPenitipan.penitip!.rataRating}',
@@ -711,10 +740,7 @@ class BarangDetailScreen extends StatelessWidget {
                 ] else ...[
                   Text(
                     'Penitip: Tidak tersedia',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   ),
                 ],
                 const SizedBox(height: 24),
@@ -726,7 +752,9 @@ class BarangDetailScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2E7D32),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),

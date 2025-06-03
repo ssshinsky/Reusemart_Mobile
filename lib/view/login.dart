@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:reusemart_mobile/services/api_client.dart';
+import 'package:reusemart_mobile/view/kurir/kurir_dashboard.dart';
+import 'package:reusemart_mobile/main.dart';
 import 'dart:developer' as developer;
-import '../services/api_client.dart';
-import '../main.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -43,15 +44,24 @@ class _LoginPageState extends State<LoginPage> {
           'Login berhasil: Email=${_emailController.text}, Role=${result['role']}',
           name: 'LoginPage',
         );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomeScreen(
-              role: result['role'],
-              user: result['user'],
+        if (result['role'] == 'pegawai') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    KurirDashboardScreen()), // Removed 'const'
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomeScreen(
+                role: result['role'],
+                user: result['user'],
+              ),
             ),
-          ),
-        );
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -102,7 +112,7 @@ class _LoginPageState extends State<LoginPage> {
                       color: Colors.green[700],
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.green.withValues(alpha: 0.3), // Updated
+                          color: Colors.green.withValues(alpha: 0.3),
                           blurRadius: 10,
                           spreadRadius: 2,
                         ),
