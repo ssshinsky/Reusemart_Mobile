@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gcm_defaultSenderId" translatable="false">75684524918</string>
+    <string name="google_api_key" translatable="false">AIzaSyD_vlXO5sTW_oJZ5gNzjKqbi3mtgwITj9w</string>
+    <string name="google_app_id" translatable="false">1:75684524918:android:2810d92df1b25a61a4c057</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyD_vlXO5sTW_oJZ5gNzjKqbi3mtgwITj9w</string>
+    <string name="google_storage_bucket" translatable="false">reusemart-4365d.firebasestorage.app</string>
+    <string name="project_id" translatable="false">reusemart-4365d</string>
+</resources>

@@ -1,28 +1,57 @@
-com.example.reusemart_mobile.app-jetified-savedstate-1.2.1-0 C:\Users\acer\.gradle\caches\transforms-3\010887bb3359843376c02ecf4bf2ef43\transformed\jetified-savedstate-1.2.1\res
-com.example.reusemart_mobile.app-core-runtime-2.2.0-1 C:\Users\acer\.gradle\caches\transforms-3\08235bf0a8760a790ea7b8b4eab82236\transformed\core-runtime-2.2.0\res
-com.example.reusemart_mobile.app-jetified-profileinstaller-1.3.1-2 C:\Users\acer\.gradle\caches\transforms-3\1e1e8719823df11c58e964840aa823f6\transformed\jetified-profileinstaller-1.3.1\res
-com.example.reusemart_mobile.app-jetified-window-1.2.0-3 C:\Users\acer\.gradle\caches\transforms-3\3e108fe9d597d03770ae82acaebb5b63\transformed\jetified-window-1.2.0\res
-com.example.reusemart_mobile.app-jetified-activity-1.8.1-4 C:\Users\acer\.gradle\caches\transforms-3\3e4063b07db37bd08626b21245b0f82d\transformed\jetified-activity-1.8.1\res
-com.example.reusemart_mobile.app-jetified-lifecycle-livedata-core-ktx-2.7.0-5 C:\Users\acer\.gradle\caches\transforms-3\4befdc7f9fed1e5c6647eae72672d219\transformed\jetified-lifecycle-livedata-core-ktx-2.7.0\res
-com.example.reusemart_mobile.app-lifecycle-viewmodel-2.7.0-6 C:\Users\acer\.gradle\caches\transforms-3\52dfd6d7c21c1e36dbdf0d304093d642\transformed\lifecycle-viewmodel-2.7.0\res
-com.example.reusemart_mobile.app-jetified-startup-runtime-1.1.1-7 C:\Users\acer\.gradle\caches\transforms-3\53f114d110e356c36b5f50ab357f361f\transformed\jetified-startup-runtime-1.1.1\res
-com.example.reusemart_mobile.app-jetified-core-ktx-1.13.1-8 C:\Users\acer\.gradle\caches\transforms-3\58accd456bc756075136cc5a7dae18d3\transformed\jetified-core-ktx-1.13.1\res
-com.example.reusemart_mobile.app-jetified-lifecycle-process-2.7.0-9 C:\Users\acer\.gradle\caches\transforms-3\5d9083683aa46ad6646ca7a884bd56df\transformed\jetified-lifecycle-process-2.7.0\res
-com.example.reusemart_mobile.app-jetified-annotation-experimental-1.4.0-10 C:\Users\acer\.gradle\caches\transforms-3\6707c561045b071954f9f1d8398a2530\transformed\jetified-annotation-experimental-1.4.0\res
-com.example.reusemart_mobile.app-jetified-core-1.0.0-11 C:\Users\acer\.gradle\caches\transforms-3\6dde453803d512b3f23cc981e264e9e0\transformed\jetified-core-1.0.0\res
-com.example.reusemart_mobile.app-lifecycle-livedata-2.7.0-12 C:\Users\acer\.gradle\caches\transforms-3\9c28b5c7a2d23237247570dbf8382af1\transformed\lifecycle-livedata-2.7.0\res
-com.example.reusemart_mobile.app-lifecycle-livedata-core-2.7.0-13 C:\Users\acer\.gradle\caches\transforms-3\9ec76326f098fb11057ae8a1fda52a48\transformed\lifecycle-livedata-core-2.7.0\res
-com.example.reusemart_mobile.app-fragment-1.7.1-14 C:\Users\acer\.gradle\caches\transforms-3\a49cd171355a6a39687e69f028c8bcbc\transformed\fragment-1.7.1\res
-com.example.reusemart_mobile.app-jetified-window-java-1.2.0-15 C:\Users\acer\.gradle\caches\transforms-3\bf78d940cc78ca45c77421e3af64376e\transformed\jetified-window-java-1.2.0\res
-com.example.reusemart_mobile.app-core-1.13.1-16 C:\Users\acer\.gradle\caches\transforms-3\c666c258fca39b3353b46678a6b928ab\transformed\core-1.13.1\res
-com.example.reusemart_mobile.app-lifecycle-runtime-2.7.0-17 C:\Users\acer\.gradle\caches\transforms-3\c8996eb6ce8efabee1883fe1486006c9\transformed\lifecycle-runtime-2.7.0\res
-com.example.reusemart_mobile.app-jetified-lifecycle-viewmodel-savedstate-2.7.0-18 C:\Users\acer\.gradle\caches\transforms-3\ca2eed4266fd24517e583e6618aa3924\transformed\jetified-lifecycle-viewmodel-savedstate-2.7.0\res
-com.example.reusemart_mobile.app-jetified-tracing-1.2.0-19 C:\Users\acer\.gradle\caches\transforms-3\fee79d0d8ef3af5dbc14ef6d22d028cf\transformed\jetified-tracing-1.2.0\res
-com.example.reusemart_mobile.app-debug-20 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\android\app\src\debug\res
-com.example.reusemart_mobile.app-main-21 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\android\app\src\main\res
-com.example.reusemart_mobile.app-pngs-22 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\build\app\generated\res\pngs\debug
-com.example.reusemart_mobile.app-resValues-23 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\build\app\generated\res\resValues\debug
-com.example.reusemart_mobile.app-packageDebugResources-24 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\build\app\intermediates\incremental\debug\packageDebugResources\merged.dir
-com.example.reusemart_mobile.app-packageDebugResources-25 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\build\app\intermediates\incremental\debug\packageDebugResources\stripped.dir
-com.example.reusemart_mobile.app-merged_res-26 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\build\app\intermediates\merged_res\debug
-com.example.reusemart_mobile.app-packaged_res-27 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\build\path_provider_android\intermediates\packaged_res\debug
+com.example.reusemart_mobile.app-jetified-profileinstaller-1.3.1-0 C:\Users\acer\.gradle\caches\transforms-3\0525ed4708bf57967383c59c54b7740c\transformed\jetified-profileinstaller-1.3.1\res
+com.example.reusemart_mobile.app-jetified-play-services-basement-18.5.0-1 C:\Users\acer\.gradle\caches\transforms-3\061983d733175f578c3df69f2f736ba9\transformed\jetified-play-services-basement-18.5.0\res
+com.example.reusemart_mobile.app-slidingpanelayout-1.2.0-2 C:\Users\acer\.gradle\caches\transforms-3\145ada63d03fee54aacd8b6c0703b143\transformed\slidingpanelayout-1.2.0\res
+com.example.reusemart_mobile.app-jetified-lifecycle-livedata-core-ktx-2.7.0-3 C:\Users\acer\.gradle\caches\transforms-3\16fe2bdc0f3360902a7ff003f0df86b2\transformed\jetified-lifecycle-livedata-core-ktx-2.7.0\res
+com.example.reusemart_mobile.app-fragment-1.7.1-4 C:\Users\acer\.gradle\caches\transforms-3\1bc3844f57df6cef38dca8c5ee53045a\transformed\fragment-1.7.1\res
+com.example.reusemart_mobile.app-appcompat-1.1.0-5 C:\Users\acer\.gradle\caches\transforms-3\1d33f6ec34240c0a7a9de7eb6e142961\transformed\appcompat-1.1.0\res
+com.example.reusemart_mobile.app-jetified-activity-1.8.1-6 C:\Users\acer\.gradle\caches\transforms-3\27402b65674f6d55e0717190d6fc0ca8\transformed\jetified-activity-1.8.1\res
+com.example.reusemart_mobile.app-core-runtime-2.2.0-7 C:\Users\acer\.gradle\caches\transforms-3\324faca45d39cfef77c93ffad6853078\transformed\core-runtime-2.2.0\res
+com.example.reusemart_mobile.app-jetified-firebase-common-21.0.0-8 C:\Users\acer\.gradle\caches\transforms-3\32d8f7eb7c81654425f2e29d1b915f40\transformed\jetified-firebase-common-21.0.0\res
+com.example.reusemart_mobile.app-jetified-activity-ktx-1.8.1-9 C:\Users\acer\.gradle\caches\transforms-3\33d5c6b049c874beba3613f45535f7fe\transformed\jetified-activity-ktx-1.8.1\res
+com.example.reusemart_mobile.app-core-1.13.1-10 C:\Users\acer\.gradle\caches\transforms-3\40eafeb41e4b3db0d1002c47bb4f2229\transformed\core-1.13.1\res
+com.example.reusemart_mobile.app-lifecycle-runtime-2.7.0-11 C:\Users\acer\.gradle\caches\transforms-3\429763b3c9b570352b6d645886f0a069\transformed\lifecycle-runtime-2.7.0\res
+com.example.reusemart_mobile.app-jetified-play-services-auth-20.7.0-12 C:\Users\acer\.gradle\caches\transforms-3\44d8895d3b1ce31d93eb1dead9afacb9\transformed\jetified-play-services-auth-20.7.0\res
+com.example.reusemart_mobile.app-jetified-ads-adservices-1.1.0-beta11-13 C:\Users\acer\.gradle\caches\transforms-3\46c19387615c26f9b93c88736e7462db\transformed\jetified-ads-adservices-1.1.0-beta11\res
+com.example.reusemart_mobile.app-browser-1.4.0-14 C:\Users\acer\.gradle\caches\transforms-3\4ee6f0a10389f0b3c5730d4642f7485b\transformed\browser-1.4.0\res
+com.example.reusemart_mobile.app-jetified-datastore-core-release-15 C:\Users\acer\.gradle\caches\transforms-3\53061d55b1bbfca34f79894d21159179\transformed\jetified-datastore-core-release\res
+com.example.reusemart_mobile.app-jetified-datastore-preferences-release-16 C:\Users\acer\.gradle\caches\transforms-3\53a171b130ca5756e0bd3bf0d5474087\transformed\jetified-datastore-preferences-release\res
+com.example.reusemart_mobile.app-lifecycle-livedata-core-2.7.0-17 C:\Users\acer\.gradle\caches\transforms-3\6721e6b041abfc804ec5d14228a82a10\transformed\lifecycle-livedata-core-2.7.0\res
+com.example.reusemart_mobile.app-lifecycle-livedata-2.7.0-18 C:\Users\acer\.gradle\caches\transforms-3\6bbb605e15f40a47a774ec482913dde0\transformed\lifecycle-livedata-2.7.0\res
+com.example.reusemart_mobile.app-jetified-window-1.2.0-19 C:\Users\acer\.gradle\caches\transforms-3\748b861bde3353f75e24286e0e9ca176\transformed\jetified-window-1.2.0\res
+com.example.reusemart_mobile.app-jetified-credentials-play-services-auth-1.2.0-rc01-20 C:\Users\acer\.gradle\caches\transforms-3\7b193b3303c34af1712fc09c27b3dd37\transformed\jetified-credentials-play-services-auth-1.2.0-rc01\res
+com.example.reusemart_mobile.app-jetified-window-java-1.2.0-21 C:\Users\acer\.gradle\caches\transforms-3\7d4f014f5c58322e0dc1bf26f90f7b5d\transformed\jetified-window-java-1.2.0\res
+com.example.reusemart_mobile.app-jetified-startup-runtime-1.1.1-22 C:\Users\acer\.gradle\caches\transforms-3\80647d4f7a393dfb26d94859391f4f2a\transformed\jetified-startup-runtime-1.1.1\res
+com.example.reusemart_mobile.app-jetified-play-services-base-18.5.0-23 C:\Users\acer\.gradle\caches\transforms-3\83294c0cb8c44cfc44579d3064856526\transformed\jetified-play-services-base-18.5.0\res
+com.example.reusemart_mobile.app-jetified-lifecycle-process-2.7.0-24 C:\Users\acer\.gradle\caches\transforms-3\8330ebf95d1b46da75ffd541afe556d5\transformed\jetified-lifecycle-process-2.7.0\res
+com.example.reusemart_mobile.app-preference-1.2.1-25 C:\Users\acer\.gradle\caches\transforms-3\88a153e1135f3407c3ddaf950cb1f5dc\transformed\preference-1.2.1\res
+com.example.reusemart_mobile.app-jetified-lifecycle-viewmodel-ktx-2.7.0-26 C:\Users\acer\.gradle\caches\transforms-3\890c9690a975e22a9065be56c475ba8d\transformed\jetified-lifecycle-viewmodel-ktx-2.7.0\res
+com.example.reusemart_mobile.app-jetified-core-common-2.0.3-27 C:\Users\acer\.gradle\caches\transforms-3\8ea45d9c7aded9494bc9f98613323ca2\transformed\jetified-core-common-2.0.3\res
+com.example.reusemart_mobile.app-jetified-fragment-ktx-1.7.1-28 C:\Users\acer\.gradle\caches\transforms-3\951a0c5785d45456f03d0e8652ed768b\transformed\jetified-fragment-ktx-1.7.1\res
+com.example.reusemart_mobile.app-jetified-savedstate-ktx-1.2.1-29 C:\Users\acer\.gradle\caches\transforms-3\960ec9a6b025bbd65e78023cbc92d409\transformed\jetified-savedstate-ktx-1.2.1\res
+com.example.reusemart_mobile.app-jetified-core-ktx-1.13.1-30 C:\Users\acer\.gradle\caches\transforms-3\9d32b1d6377e42e15801df2788541038\transformed\jetified-core-ktx-1.13.1\res
+com.example.reusemart_mobile.app-jetified-annotation-experimental-1.4.0-31 C:\Users\acer\.gradle\caches\transforms-3\a1aca305b6c8a2f5f11ba39700576e60\transformed\jetified-annotation-experimental-1.4.0\res
+com.example.reusemart_mobile.app-jetified-appcompat-resources-1.1.0-32 C:\Users\acer\.gradle\caches\transforms-3\a8bf0bb610aa41c710dc97e14e0b9d82\transformed\jetified-appcompat-resources-1.1.0\res
+com.example.reusemart_mobile.app-jetified-savedstate-1.2.1-33 C:\Users\acer\.gradle\caches\transforms-3\aae816402dffdec2554e2ecdd0797b97\transformed\jetified-savedstate-1.2.1\res
+com.example.reusemart_mobile.app-jetified-lifecycle-runtime-ktx-2.7.0-34 C:\Users\acer\.gradle\caches\transforms-3\abae2d88bd27af458e65a0f9ad3efbff\transformed\jetified-lifecycle-runtime-ktx-2.7.0\res
+com.example.reusemart_mobile.app-recyclerview-1.0.0-35 C:\Users\acer\.gradle\caches\transforms-3\ada57441a25018999a4ce682852a84f6\transformed\recyclerview-1.0.0\res
+com.example.reusemart_mobile.app-jetified-core-1.0.0-36 C:\Users\acer\.gradle\caches\transforms-3\b5ea37f5e1795585380d398449b86b13\transformed\jetified-core-1.0.0\res
+com.example.reusemart_mobile.app-jetified-credentials-1.2.0-rc01-37 C:\Users\acer\.gradle\caches\transforms-3\b8bb7853cb4d33a20c0f6e19e3740aee\transformed\jetified-credentials-1.2.0-rc01\res
+com.example.reusemart_mobile.app-jetified-ads-adservices-java-1.1.0-beta11-38 C:\Users\acer\.gradle\caches\transforms-3\dfeb267791e722d082b470599f8ac960\transformed\jetified-ads-adservices-java-1.1.0-beta11\res
+com.example.reusemart_mobile.app-jetified-tracing-1.2.0-39 C:\Users\acer\.gradle\caches\transforms-3\e1b550caa96d700a0f4b0ca56f5f37c0\transformed\jetified-tracing-1.2.0\res
+com.example.reusemart_mobile.app-jetified-lifecycle-viewmodel-savedstate-2.7.0-40 C:\Users\acer\.gradle\caches\transforms-3\f00301d54988b8c529c12af0e4eee4b0\transformed\jetified-lifecycle-viewmodel-savedstate-2.7.0\res
+com.example.reusemart_mobile.app-jetified-datastore-release-41 C:\Users\acer\.gradle\caches\transforms-3\f2fa369a2daa05cd9f839e00ac560854\transformed\jetified-datastore-release\res
+com.example.reusemart_mobile.app-transition-1.4.1-42 C:\Users\acer\.gradle\caches\transforms-3\f6ece4adb9d07b2187e0895237fa2545\transformed\transition-1.4.1\res
+com.example.reusemart_mobile.app-lifecycle-viewmodel-2.7.0-43 C:\Users\acer\.gradle\caches\transforms-3\f99f6691de4d8bb6dd68005a293331a2\transformed\lifecycle-viewmodel-2.7.0\res
+com.example.reusemart_mobile.app-coordinatorlayout-1.0.0-44 C:\Users\acer\.gradle\caches\transforms-3\fa40b48584570b26ceb19200dd124f4c\transformed\coordinatorlayout-1.0.0\res
+com.example.reusemart_mobile.app-debug-45 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\android\app\src\debug\res
+com.example.reusemart_mobile.app-main-46 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\android\app\src\main\res
+com.example.reusemart_mobile.app-google-services-47 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\build\app\generated\res\google-services\debug
+com.example.reusemart_mobile.app-pngs-48 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\build\app\generated\res\pngs\debug
+com.example.reusemart_mobile.app-resValues-49 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\build\app\generated\res\resValues\debug
+com.example.reusemart_mobile.app-packageDebugResources-50 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\build\app\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.example.reusemart_mobile.app-packageDebugResources-51 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\build\app\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.example.reusemart_mobile.app-merged_res-52 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\build\app\intermediates\merged_res\debug
+com.example.reusemart_mobile.app-packaged_res-53 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\build\firebase_auth\intermediates\packaged_res\debug
+com.example.reusemart_mobile.app-packaged_res-54 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\build\firebase_core\intermediates\packaged_res\debug
+com.example.reusemart_mobile.app-packaged_res-55 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\build\path_provider_android\intermediates\packaged_res\debug
+com.example.reusemart_mobile.app-packaged_res-56 C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile\build\shared_preferences_android\intermediates\packaged_res\debug

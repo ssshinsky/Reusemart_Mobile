@@ -6,7 +6,7 @@ import '../models/barang.dart';
 import '../models/kategori.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://172.16.0.4:8000/api';
+  static const String baseUrl = 'http://172.16.5.211:8000/api';
   String? _token;
 
   Future<void> _ensureTokenLoaded() async {

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,9 +11,18 @@ import 'models/kategori.dart';
 import 'view/login.dart';
 import 'dart:convert'; // Untuk jsonDecode
 
-void main() {
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
+
+// void main() {
+//   runApp(const MyApp());
+// }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -154,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
         backgroundColor: const Color(0xFF2E7D32),
         elevation: 6,
-        shadowColor: Colors.green.withValues(alpha: 0.3),
+        shadowColor: Colors.green.withOpacity( 0.3),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -174,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
+                          color: Colors.black.withOpacity( 0.1),
                           blurRadius: 10,
                           offset: const Offset(0, 5),
                         ),
@@ -195,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  Colors.black.withValues(alpha: 0.7),
+                                  Colors.black.withOpacity( 0.7),
                                   Colors.transparent,
                                 ],
                                 begin: Alignment.bottomCenter,
@@ -290,7 +302,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               border: Border.all(color: Colors.grey[300]!),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
+                                  color: Colors.black.withOpacity( 0.05),
                                   blurRadius: 6,
                                   offset: const Offset(0, 2),
                                 ),
@@ -399,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
+                                color: Colors.black.withOpacity( 0.1),
                                 blurRadius: 8,
                                 offset: const Offset(0, 4),
                               ),
@@ -415,7 +427,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   child: barang.gambar.isNotEmpty
                                       ? Image.network(
-                                          'http://172.16.0.4:8000/storage/${barang.gambar[0].gambarBarang}',
+                                          'http://172.16.5.211:8000/storage/${barang.gambar[0].gambarBarang}',
                                           fit: BoxFit.cover,
                                           width: double.infinity,
                                           errorBuilder:
@@ -518,7 +530,7 @@ class BarangDetailScreen extends StatelessWidget {
         ),
         backgroundColor: const Color(0xFF2E7D32),
         elevation: 6,
-        shadowColor: Colors.green.withValues(alpha: 0.3),
+        shadowColor: Colors.green.withOpacity( 0.3),
       ),
       body: FutureBuilder<Barang>(
         future: apiClient.getBarangById(id),
@@ -544,7 +556,7 @@ class BarangDetailScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
+                        color: Colors.black.withOpacity( 0.1),
                         blurRadius: 10,
                         offset: const Offset(0, 5),
                       ),
@@ -557,7 +569,7 @@ class BarangDetailScreen extends StatelessWidget {
                       children: [
                         barang.gambar.isNotEmpty
                             ? Image.network(
-                                'http://172.16.0.4:8000/storage/${barang.gambar[0].gambarBarang}',
+                                'http://172.16.5.211:8000/storage/${barang.gambar[0].gambarBarang}',
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) =>
                                     Container(color: Colors.grey[300]),
@@ -572,7 +584,7 @@ class BarangDetailScreen extends StatelessWidget {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  Colors.black.withValues(alpha: 0.7),
+                                  Colors.black.withOpacity( 0.7),
                                   Colors.transparent,
                                 ],
                                 begin: Alignment.bottomCenter,

@@ -102,7 +102,7 @@ class _LoginPageState extends State<LoginPage> {
                       color: Colors.green[700],
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.green.withValues(alpha: 0.3), // Updated
+                          color: Colors.green.withOpacity( 0.3), // Updated
                           blurRadius: 10,
                           spreadRadius: 2,
                         ),
