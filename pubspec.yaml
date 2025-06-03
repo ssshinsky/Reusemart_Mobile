@@ -14,6 +14,7 @@ dependencies:
   flutter_svg: ^2.0.9
   carousel_slider: ^5.0.0
   google_fonts: ^6.2.1
+  shared_preferences: ^2.2.2
   cloud_firestore: ^4.4.5
   flutter_slideable: ^0.5.7
   # path: ^1.8.0
