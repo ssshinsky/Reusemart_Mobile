@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'dart:developer' as developer;
 import '../services/api_client.dart';
+import '../view/kurir/kurir_dashboard.dart';
 import '../main.dart';
+import 'dart:developer' as developer;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -43,15 +44,22 @@ class _LoginPageState extends State<LoginPage> {
           'Login berhasil: Email=${_emailController.text}, Role=${result['role']}',
           name: 'LoginPage',
         );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomeScreen(
-              role: result['role'],
-              user: result['user'],
+        if (result['role'] == 'pegawai') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => KurirDashboardScreen()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomeScreen(
+                role: result['role'],
+                user: result['user'],
+              ),
             ),
-          ),
-        );
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -102,7 +110,7 @@ class _LoginPageState extends State<LoginPage> {
                       color: Colors.green[700],
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.green.withValues(alpha: 0.3), // Updated
+                          color: Colors.green.withValues(alpha: 0.3),
                           blurRadius: 10,
                           spreadRadius: 2,
                         ),
@@ -116,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 24),
                   const Text(
-                    'Selamat Datang',
+                    'Welcome',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -154,7 +162,6 @@ class _LoginPageState extends State<LoginPage> {
                               'Pembeli',
                               'Penitip',
                               'Pegawai',
-                              'Organisasi'
                             ].map<DropdownMenuItem<String>>((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
@@ -233,7 +240,7 @@ class _LoginPageState extends State<LoginPage> {
                             elevation: 3,
                           ),
                           child: const Text(
-                            'Masuk',
+                            'Login',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -246,7 +253,7 @@ class _LoginPageState extends State<LoginPage> {
                       Navigator.pop(context);
                     },
                     child: Text(
-                      'Batal',
+                      'Cancel',
                       style: TextStyle(
                         color: Colors.grey[600],
                         fontSize: 16,

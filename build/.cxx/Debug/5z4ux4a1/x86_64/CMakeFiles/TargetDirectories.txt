@@ -1,2 +1,0 @@
-C:/Users/ASUS/Documents/Reusemart_Mobile/build/.cxx/Debug/5z4ux4a1/x86_64/CMakeFiles/edit_cache.dir
-C:/Users/ASUS/Documents/Reusemart_Mobile/build/.cxx/Debug/5z4ux4a1/x86_64/CMakeFiles/rebuild_cache.dir

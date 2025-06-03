@@ -1,36 +1,221 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'dart:convert';
 import 'services/api_client.dart';
 import 'models/barang.dart';
 import 'models/kategori.dart';
 import 'view/login.dart';
-import 'dart:convert'; // Untuk jsonDecode
+import 'view/kurir/kurir_dashboard.dart';
 
-void main() {
+// Navigator key untuk navigasi dari notifikasi
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+// Inisialisasi flutter_local_notifications
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
+// Handler untuk notifikasi di background
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  print("Handling a background message: ${message.messageId}");
+}
+
+Future<void> setupFirebaseMessaging() async {
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  // Request permission untuk iOS dan Android
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
+  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+    print('User granted permission');
+  }
+
+  // Mendapatkan token FCM
+  String? token = await messaging.getToken();
+  print("FCM Token: $token");
+
+  // Kirim token ke backend Laravel
+  if (token != null) {
+    await sendTokenToBackend(token);
+  }
+
+  // Menangani notifikasi saat aplikasi di foreground
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    print('Got a message whilst in the foreground!');
+    print('Message data: ${message.data}');
+    if (message.notification != null) {
+      print('Message also contained a notification: ${message.notification}');
+      showNotification(message);
+    }
+  });
+
+  // Menangani notifikasi saat aplikasi dibuka dari background
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    print('A new onMessageOpenedApp event was published!');
+    if (message.data['type'] == 'order') {
+      Navigator.push(
+        navigatorKey.currentState!.context,
+        MaterialPageRoute(
+          builder: (context) => OrderDetailScreen(id: message.data['order_id']),
+        ),
+      );
+    }
+  });
+
+  // Menangani notifikasi saat aplikasi di background
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // Inisialisasi notifikasi lokal
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  // iOS settings (diganti dari IOSInitializationSettings)
+  final DarwinInitializationSettings initializationSettingsIOS =
+      DarwinInitializationSettings();
+
+  // Gabungkan ke dalam InitializationSettings
+  final InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+    iOS: initializationSettingsIOS,
+  );
+
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    // Ganti dari onSelectNotification ke onDidReceiveNotificationResponse
+    onDidReceiveNotificationResponse: (NotificationResponse response) async {
+      if (response.payload != null) {
+        final data = jsonDecode(response.payload!);
+        if (data['type'] == 'order') {
+          Navigator.push(
+            navigatorKey.currentState!.context,
+            MaterialPageRoute(
+              builder: (context) => OrderDetailScreen(id: data['order_id']),
+            ),
+          );
+        }
+      }
+    },
+  );
+}
+
+// Fungsi untuk menampilkan notifikasi lokal
+void showNotification(RemoteMessage message) async {
+  const AndroidNotificationDetails androidPlatformChannelSpecifics =
+      AndroidNotificationDetails(
+    'high_importance_channel',
+    'High Importance Notifications',
+    channelDescription: 'This channel is used for important notifications.',
+    importance: Importance.max,
+    priority: Priority.high,
+    showWhen: true,
+    icon: '@mipmap/ic_launcher',
+  );
+  const NotificationDetails platformChannelSpecifics =
+      NotificationDetails(android: androidPlatformChannelSpecifics);
+  await flutterLocalNotificationsPlugin.show(
+    message.messageId.hashCode,
+    message.notification?.title ?? 'Notifikasi Baru',
+    message.notification?.body ?? 'Anda memiliki pesan baru',
+    platformChannelSpecifics,
+    payload: jsonEncode(message.data),
+  );
+}
+
+// Fungsi untuk mengirim token ke backend
+Future<void> sendTokenToBackend(String token) async {
+  final prefs = await SharedPreferences.getInstance();
+  final authToken = prefs.getString('token');
+  final role = prefs.getString('role'); // Ambil role dari SharedPreferences
+  if (authToken == null || role == null) {
+    print('No auth token or role found');
+    return;
+  }
+
+  final apiClient = ApiClient();
+  try {
+    final response = await apiClient.post(
+      '/save-fcm-token',
+      {
+        'token': token,
+        'role': role, // Kirim role ke backend
+      },
+      headers: {'Authorization': 'Bearer $authToken'},
+    );
+    print('Token sent to backend: ${response.statusCode}');
+  } catch (e) {
+    print('Error sending token to backend: $e');
+  }
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  await setupFirebaseMessaging();
+
+  // Cek apakah aplikasi dibuka dari notifikasi
+  final RemoteMessage? initialMessage =
+      await FirebaseMessaging.instance.getInitialMessage();
+  if (initialMessage != null) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (initialMessage.data['type'] == 'order') {
+        Navigator.push(
+          navigatorKey.currentState!.context,
+          MaterialPageRoute(
+            builder: (context) =>
+                OrderDetailScreen(id: initialMessage.data['order_id']),
+          ),
+        );
+      }
+    });
+  }
+
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  Future<String?> _getUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('role');
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey, // Tambahkan navigatorKey
       title: 'ReuseMart Mobile',
       theme: ThemeData(
         primarySwatch: Colors.green,
         textTheme: GoogleFonts.poppinsTextTheme(),
       ),
-      home: const HomeScreen(),
+      home: FutureBuilder<String?>(
+        future: _getUserRole(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final role = snapshot.data;
+          if (role == 'pegawai') {
+            return KurirDashboardScreen();
+          }
+          return const HomeScreen();
+        },
+      ),
     );
   }
 }
 
 class HomeScreen extends StatefulWidget {
-  final String? role; // Parameter opsional
-  final Map<String, dynamic>? user; // Parameter opsional
+  final String? role;
+  final Map<String, dynamic>? user;
 
   const HomeScreen({super.key, this.role, this.user});
 
@@ -41,7 +226,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final ApiClient apiClient = ApiClient();
 
-  // List untuk carousel
   final List<Map<String, String>> banners = [
     {
       'image': 'https://via.placeholder.com/400x150',
@@ -60,7 +244,6 @@ class _HomeScreenState extends State<HomeScreen> {
     },
   ];
 
-  // Fungsi untuk memeriksa status login dan mendapatkan data pengguna
   Future<Map<String, dynamic>> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
@@ -75,7 +258,6 @@ class _HomeScreenState extends State<HomeScreen> {
     };
   }
 
-  // Fungsi untuk logout
   Future<void> _logout() async {
     await apiClient.clearToken();
     setState(() {});
@@ -160,7 +342,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Carousel Banner
             Container(
               margin:
                   const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
@@ -241,8 +422,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-
-            // Kategori Section
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
@@ -277,9 +456,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 6.0),
                         child: GestureDetector(
-                          onTap: () {
-                            // Logika klik kategori
-                          },
+                          onTap: () {},
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             width: 100,
@@ -336,8 +513,6 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             const SizedBox(height: 16),
-
-            // For You Section
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
@@ -470,9 +645,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 16),
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                  // Logika View All
-                },
+                onPressed: () {},
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2E7D32),
                   padding:
@@ -720,9 +893,7 @@ class BarangDetailScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 Center(
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Logika View Details
-                    },
+                    onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2E7D32),
                       padding: const EdgeInsets.symmetric(
@@ -747,6 +918,24 @@ class BarangDetailScreen extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+// Tambahkan OrderDetailScreen untuk menangani navigasi dari notifikasi
+class OrderDetailScreen extends StatelessWidget {
+  final String id;
+
+  const OrderDetailScreen({super.key, required this.id});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Detail Pesanan'),
+        backgroundColor: const Color(0xFF2E7D32),
+      ),
+      body: Center(child: Text('Order ID: $id')),
     );
   }
 }

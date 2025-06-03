@@ -1,13 +1,40 @@
 import 'dart:convert';
-import 'dart:developer' as developer; // Added import
+import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/barang.dart';
 import '../models/kategori.dart';
+import '../models/delivery.dart';
 
 class ApiClient {
   static const String baseUrl = 'http://172.16.0.4:8000/api';
   String? _token;
+
+  Future<http.Response> post(
+    String endpoint,
+    Map<String, dynamic> data, {
+    Map<String, String>? headers,
+  }) async {
+    final uri = Uri.parse('$baseUrl$endpoint');
+    final combinedHeaders = {
+      'Content-Type': 'application/json',
+      if (headers != null) ...headers,
+      ...(await _headers), // gabungkan dengan header dari token lokal jika ada
+    };
+
+    final response = await http.post(
+      uri,
+      headers: combinedHeaders,
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode >= 400) {
+      throw Exception(
+          'POST $endpoint failed (${response.statusCode}): ${response.body}');
+    }
+
+    return response;
+  }
 
   Future<void> _ensureTokenLoaded() async {
     if (_token == null) {
@@ -90,14 +117,16 @@ class ApiClient {
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
-      );
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/login'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'email': email,
+              'password': password,
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
 
       developer.log('API Response: ${response.body}', name: 'ApiClient');
       final data = jsonDecode(response.body);
@@ -159,6 +188,44 @@ class ApiClient {
       }
     } catch (e) {
       throw Exception('Logout error: $e');
+    }
+  }
+
+  Future<List<Delivery>> getDeliveryHistory() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/kurir/deliveries'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        final List jsonResponse = jsonDecode(response.body);
+        return jsonResponse.map((data) => Delivery.fromJson(data)).toList();
+      } else {
+        throw Exception(
+            'Failed to load delivery history (${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Error getting delivery history: $e');
+    }
+  }
+
+  // New method: Update delivery status
+  Future<void> updateDeliveryStatus(int deliveryId, String status) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/kurir/deliveries/update'),
+        headers: await _headers,
+        body: jsonEncode({
+          'delivery_id': deliveryId,
+          'status': status,
+        }),
+      );
+      if (response.statusCode != 200) {
+        final body = jsonDecode(response.body);
+        throw Exception(body['message'] ?? 'Failed to update delivery status');
+      }
+    } catch (e) {
+      throw Exception('Error updating delivery status: $e');
     }
   }
 }
