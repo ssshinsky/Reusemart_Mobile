@@ -337,7 +337,7 @@ class HomeScreen extends StatelessWidget {
                                   ),
                                   child: barang.gambar.isNotEmpty
                                       ? Image.network(
-                                          'http://192.168.100.65:8000/storage/${barang.gambar[0].gambarBarang}',
+                                          'http://172.16.5.211:8000/storage/${barang.gambar[0].gambarBarang}',
                                           fit: BoxFit.cover,
                                           width: double.infinity,
                                           errorBuilder: (context, error, stackTrace) =>
@@ -475,7 +475,7 @@ class BarangDetailScreen extends StatelessWidget {
                       children: [
                         barang.gambar.isNotEmpty
                             ? Image.network(
-                                'http://192.168.100.65:8000/storage/${barang.gambar[0].gambarBarang}',
+                                'http://172.16.5.211:8000/storage/${barang.gambar[0].gambarBarang}',
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) =>
                                     Container(color: Colors.grey[300]),
