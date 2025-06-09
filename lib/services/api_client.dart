@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:developer' as developer; // Added import
 import 'package:http/http.dart' as http;
+import 'package:reusemart_mobile/models/penitip.dart';
+// import 'package:reusemart_mobile/models/penitip_history.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/barang.dart';
 import '../models/kategori.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://172.16.0.4:8000/api';
+  static const String baseUrl = 'http://192.168.100.65:8000/api';
   String? _token;
 
   Future<void> _ensureTokenLoaded() async {
@@ -142,6 +144,39 @@ class ApiClient {
       throw Exception('Error adding to cart: $e');
     }
   }
+
+  Future<Penitipp> getPenitipProfile() async {
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/penitip/profile'),
+      headers: await _headers,
+    );
+    if (response.statusCode == 200) {
+      return Penitipp.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load profile (${response.statusCode})');
+    }
+  } catch (e) {
+    throw Exception('Error getting profile: $e');
+  }
+}
+
+Future<List<ConsignmentHistory>> getConsignmentHistory() async {
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/penitip/history'),
+      headers: await _headers,
+    );
+    if (response.statusCode == 200) {
+      final List jsonResponse = jsonDecode(response.body);
+      return jsonResponse.map((data) => ConsignmentHistory.fromJson(data)).toList();
+    } else {
+      throw Exception('Failed to load history (${response.statusCode})');
+    }
+  } catch (e) {
+    throw Exception('Error getting consignment history: $e');
+  }
+}
 
   Future<void> logout() async {
     try {
