@@ -4,7 +4,7 @@ import '../models/barang.dart';
 import '../models/kategori.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://172.16.5.211:8000/api';
+  static const String baseUrl = 'http://192.168.100.65:8000/api';
 
   Future<List<Barang>> getBarang() async {
     final response = await http.get(Uri.parse('$baseUrl/barang'));
