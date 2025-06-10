@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:reusemart_mobile/models/top_seller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'services/api_client.dart';
 import 'models/barang.dart';
@@ -157,6 +158,150 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
+// Top Seller Section
+          Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      child: FutureBuilder<TopSeller?>(
+        future: apiClient.getTopSeller(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Colors.blue,
+              ),
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Gagal memuat Top Seller. Coba lagi nanti.',
+                style: GoogleFonts.poppins(
+                  color: Colors.red,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            );
+          } else if (!snapshot.hasData) {
+            return Center(
+              child: Text(
+                'Belum ada Top Seller untuk bulan ini.',
+                style: GoogleFonts.poppins(
+                  color: Colors.grey,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            );
+          }
+
+          final topSeller = snapshot.data!;
+          return Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 16.0,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.blue[100], // Background biru muda
+              borderRadius: BorderRadius.circular(16), // Smooth corners
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                // Foto atau Inisial
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(50),
+                  child: topSeller.profilPict != null
+                      ? Image.network(
+                          topSeller.profilPict!,
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                            Icons.person,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
+                        )
+                      : Container(
+                          width: 50,
+                          height: 50,
+                          color: Colors.blue[700],
+                          child: Center(
+                            child: Text(
+                              topSeller.namaPenitip[0].toUpperCase(),
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                ),
+                const SizedBox(width: 16),
+                // Info Top Seller
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '#1 Top Seller: ${topSeller.bulan}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                      Text(
+                        topSeller.namaPenitip,
+                        style: GoogleFonts.poppins(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue[900],
+                        ),
+                      ),
+                      Text(
+                        '${topSeller.jumlahBarang} items sold | Rp ${topSeller.totalPenjualan.toStringAsFixed(0)}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.yellow[700],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          'Top Seller',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue[900],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    ),
                   // Carousel Banner
                   Container(
                     margin:
@@ -428,7 +573,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                         child: barang.gambar.isNotEmpty
                                             ? Image.network(
-                                                'http://192.168.100.65:8000/storage/${barang.gambar[0].gambarBarang}',
+                                                'http://172.16.47.2:8000/storage/${barang.gambar[0].gambarBarang}',
                                                 fit: BoxFit.cover,
                                                 width: double.infinity,
                                                 errorBuilder: (context, error, stackTrace) =>
@@ -811,7 +956,7 @@ class HomeContent extends StatelessWidget {
                                 ),
                                 child: barang.gambar.isNotEmpty
                                     ? Image.network(
-                                        'http://192.168.100.65:8000/storage/${barang.gambar[0].gambarBarang}',
+                                        'http://172.16.47.2:8000/storage/${barang.gambar[0].gambarBarang}',
                                         fit: BoxFit.cover,
                                         width: double.infinity,
                                         errorBuilder: (context, error, stackTrace) =>
@@ -950,7 +1095,7 @@ class BarangDetailScreen extends StatelessWidget {
                       children: [
                         barang.gambar.isNotEmpty
                             ? Image.network(
-                                'http://192.168.100.65:8000/storage/${barang.gambar[0].gambarBarang}',
+                                'http://172.16.47.2:8000/storage/${barang.gambar[0].gambarBarang}',
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) =>
                                     Container(color: Colors.grey[300]),

@@ -6,9 +6,10 @@ import 'package:reusemart_mobile/models/penitip.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/barang.dart';
 import '../models/kategori.dart';
+import '../models/top_seller.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://192.168.100.65:8000/api';
+  static const String baseUrl = 'http://172.16.47.2:8000/api';
   String? _token;
 
   Future<void> _ensureTokenLoaded() async {
@@ -40,36 +41,44 @@ class ApiClient {
     };
   }
 
-  Future<List<Barang>> getBarang() async {
+  Future<TopSeller?> getTopSeller() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/produk/allProduct'),
-        headers: await _headers,
+        Uri.parse('$baseUrl/top-seller'),
+        headers: {'Accept': 'application/json'},
       );
+
+      developer.log('Top Seller Response: ${response.statusCode} - ${response.body}', name: 'ApiClient');
+
       if (response.statusCode == 200) {
-        final List jsonResponse = jsonDecode(response.body);
-        return jsonResponse.map((data) => Barang.fromJson(data)).toList();
+        return TopSeller.fromJson(jsonDecode(response.body));
+      } else if (response.statusCode == 404) {
+        return null;
       } else {
-        throw Exception('Failed to load barang (${response.statusCode})');
+        throw Exception('Failed to load top seller: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error getting barang: $e');
+      developer.log('Top Seller Error: $e', name: 'ApiClient');
+      throw Exception('Error fetching top seller: $e');
+    }
+  }
+
+  Future<List<Barang>> getBarang() async {
+    final response = await http.get(Uri.parse('$baseUrl/barang'));
+    if (response.statusCode == 200) {
+      List jsonResponse = jsonDecode(response.body);
+      return jsonResponse.map((data) => Barang.fromJson(data)).toList();
+    } else {
+      throw Exception('Failed to load barang: ${response.statusCode}');
     }
   }
 
   Future<Barang> getBarangById(int id) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/produk/detail/$id'),
-        headers: await _headers,
-      );
-      if (response.statusCode == 200) {
-        return Barang.fromJson(jsonDecode(response.body));
-      } else {
-        throw Exception('Failed to load barang (${response.statusCode})');
-      }
-    } catch (e) {
-      throw Exception('Error getting barang by ID: $e');
+    final response = await http.get(Uri.parse('$baseUrl/barang/$id'));
+    if (response.statusCode == 200) {
+      return Barang.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load barang: ${response.statusCode}');
     }
   }
 
