@@ -9,6 +9,8 @@ import 'models/kategori.dart';
 import 'view/login.dart';
 import 'view/penitip/consignment_history_page.dart';
 import 'view/penitip/penitip_profile_page.dart';
+import 'view/pembeli/pembeli_history_page.dart';
+import 'view/pembeli/pembeli_profile_page.dart';
 import 'dart:convert';
 
 void main() {
@@ -47,11 +49,25 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic>? _currentUser;
   int _selectedIndex = 0;
 
-  final List<Widget> _pages = [
-    const HomeContent(),
-    ConsignmentHistoryPage(apiClient: ApiClient(), penitipId: 12),
-    PenitipProfilePage(apiClient: ApiClient(), penitipId: 12),
-  ];
+  List<Widget> get _pages {
+    final role = _currentRole ?? widget.role?.toLowerCase();
+    final user = _currentUser ?? widget.user;
+
+    if (role == 'penitip' && user != null) {
+      return [
+        const HomeContent(),
+        ConsignmentHistoryPage(apiClient: apiClient, penitipId: user['id']),
+        PenitipProfilePage(apiClient: apiClient, penitipId: user['id']),
+      ];
+    } else if (role == 'pembeli' && user != null) {
+      return [
+        const HomeContent(),
+        PembeliHistoryPage(apiClient: apiClient, pembeliId: user['id']),
+        PembeliProfilePage(apiClient: apiClient, pembeliId: user['id']),
+      ];
+    }
+    return [const HomeContent()];
+  }
 
   @override
   void initState() {
@@ -63,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final status = await _checkLoginStatus();
     if (mounted) {
       setState(() {
-        _currentRole = status['role'];
+        _currentRole = status['role']?.toLowerCase();
         _currentUser = status['user'];
       });
     }
@@ -107,6 +123,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final theme = Theme.of(context);
+    final role = _currentRole ?? widget.role?.toLowerCase();
+    final user = _currentUser ?? widget.user;
 
     return Scaffold(
       appBar: AppBar(
@@ -122,11 +140,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         title: Text(
-          _currentUser != null
-              ? 'Selamat Datang, ${_currentUser!['nama']}'
-              : widget.user != null
-                  ? 'Selamat Datang, ${widget.user!['nama']}'
-                  : 'ReuseMart',
+          user != null
+              ? 'Selamat Datang, ${user['nama']}'
+              : 'ReuseMart',
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
             color: Colors.white,
@@ -136,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           TextButton(
             onPressed: () async {
-              if (_currentUser != null || widget.user != null) {
+              if (user != null) {
                 await _logout();
               } else {
                 Navigator.push(
@@ -146,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             },
             child: Text(
-              _currentUser != null || widget.user != null ? 'Logout' : 'Login',
+              user != null ? 'Logout' : 'Login',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -174,11 +190,9 @@ class _HomeScreenState extends State<HomeScreen> {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: _currentRole == 'penitip' && _currentUser != null
-            ? _pages[_selectedIndex]
-            : const HomeContent(),
+        child: _pages[_selectedIndex],
       ),
-      bottomNavigationBar: _currentRole == 'penitip' && _currentUser != null
+      bottomNavigationBar: (role == 'penitip' || role == 'pembeli') && user != null
           ? BottomNavigationBar(
               currentIndex: _selectedIndex,
               onTap: _onItemTapped,
@@ -224,7 +238,6 @@ class HomeContent extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-            // Top Seller Section
             Card(
               elevation: 5,
               shape: RoundedRectangleBorder(
@@ -369,7 +382,6 @@ class HomeContent extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            // Carousel Banner
             Card(
               elevation: 5,
               shape: RoundedRectangleBorder(
@@ -456,7 +468,6 @@ class HomeContent extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            // Kategori Section
             Text(
               'BROWSE BY CATEGORY',
               style: theme.textTheme.titleLarge?.copyWith(
@@ -570,7 +581,6 @@ class HomeContent extends StatelessWidget {
               },
             ),
             const SizedBox(height: 20),
-            // Recommended Products Section
             Text(
               'RECOMMENDED PRODUCTS',
               style: theme.textTheme.titleLarge?.copyWith(

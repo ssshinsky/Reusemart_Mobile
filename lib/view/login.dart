@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../services/api_client.dart';
 import 'penitip/penitip_profile_page.dart';
-import '../main.dart'; // HomeScreen
+import 'pembeli/pembeli_profile_page.dart';
+import '../main.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -41,7 +42,6 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       final role = result['role'];
-      // Validasi role sesuai dengan pilihan dropdown
       if ((selectedRole == 'Kurir' && role != 'Kurir') ||
           (selectedRole == 'Pembeli' && role != 'pembeli') ||
           (selectedRole == 'Penitip' && role != 'penitip') ||
@@ -55,34 +55,16 @@ class _LoginPageState extends State<LoginPage> {
           name: 'LoginPage',
         );
 
-        if (role == 'Penitip') {
-          final user = result['user'];
-          final penitipId = user['id'];
-          // Navigator.pushReplacement(
-          //   context,
-          //   MaterialPageRoute(builder: (context) => const PenitipProfilePage()),
-          // );
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PenitipProfilePage(
-                apiClient: ApiClient(),
-                penitipId:
-                    penitipId, // Ganti dengan ID penitip yang mau ditampilkan
-              ),
+        final user = result['user'];
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(
+              role: role,
+              user: user,
             ),
-          );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomeScreen(
-                role: role,
-                user: result['user'],
-              ),
-            ),
-          );
-        }
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {

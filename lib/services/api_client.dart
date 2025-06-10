@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer' as developer; // Added import
 import 'package:http/http.dart' as http;
+import 'package:reusemart_mobile/models/pembeli.dart';
 import 'package:reusemart_mobile/models/penitip.dart';
 // import 'package:reusemart_mobile/models/penitip_history.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -48,7 +49,9 @@ class ApiClient {
         headers: {'Accept': 'application/json'},
       );
 
-      developer.log('Top Seller Response: ${response.statusCode} - ${response.body}', name: 'ApiClient');
+      developer.log(
+          'Top Seller Response: ${response.statusCode} - ${response.body}',
+          name: 'ApiClient');
 
       if (response.statusCode == 200) {
         return TopSeller.fromJson(jsonDecode(response.body));
@@ -119,7 +122,7 @@ class ApiClient {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('role', data['role']);
           await prefs.setString('user', jsonEncode(data['user']));
-           if (data['role'] == 'Kurir' && data['user']['id'] != null) {
+          if (data['role'] == 'Kurir' && data['user']['id'] != null) {
             await prefs.setInt('id_pegawai', data['user']['id']);
           } else {
             await prefs.remove('id_pegawai');
@@ -160,72 +163,149 @@ class ApiClient {
   }
 
   // Method baru buat ngambil penitip by ID
-      Future<Penitipp> getPenitipById(int id) async {
-          try {
-              final response = await http.get(
-                  Uri.parse('$baseUrl/penitip/$id'),
-                  headers: await _headers,
-              );
-              if (response.statusCode == 200) {
-                  return Penitipp.fromJson(jsonDecode(response.body));
-              } else {
-                  throw Exception('Failed to load penitip (${response.statusCode})');
-              }
-          } catch (e) {
-              throw Exception('Error getting penitip: $e');
-          }
+  Future<Penitipp> getPenitipById(int id) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/penitip/$id'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        return Penitipp.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Failed to load penitip (${response.statusCode})');
       }
+    } catch (e) {
+      throw Exception('Error getting penitip: $e');
+    }
+  }
 
   Future<Penitipp> getPenitipProfile() async {
-  try {
-    final response = await http.get(
-      Uri.parse('$baseUrl/penitip/profile'),
-      headers: await _headers,
-    );
-    if (response.statusCode == 200) {
-      return Penitipp.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to load profile (${response.statusCode})');
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/penitip/profile'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        return Penitipp.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Failed to load profile (${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Error getting profile: $e');
     }
-  } catch (e) {
-    throw Exception('Error getting profile: $e');
   }
-}
 
-Future<List<ConsignmentHistory>> getConsignmentHistoryById(int id) async {
-  try {
-    final response = await http.get(
-      Uri.parse('$baseUrl/penitip/$id/history'),
-      headers: await _headers,
-    );
-    if (response.statusCode == 200) {
-      final List jsonResponse = jsonDecode(response.body);
-      return jsonResponse.map((data) => ConsignmentHistory.fromJson(data)).toList();
-    } else {
-      throw Exception('Failed to load history (${response.statusCode})');
+  Future<List<ConsignmentHistory>> getConsignmentHistoryById(int id) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/penitip/$id/history'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        final List jsonResponse = jsonDecode(response.body);
+        return jsonResponse
+            .map((data) => ConsignmentHistory.fromJson(data))
+            .toList();
+      } else {
+        throw Exception('Failed to load history (${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Error getting consignment history: $e');
     }
-  } catch (e) {
-    throw Exception('Error getting consignment history: $e');
   }
-}
 
-Future<List<ConsignmentHistory>> getConsignmentHistory() async {
-  try {
-    final response = await http.get(
-      Uri.parse('$baseUrl/penitip/history'),
-      headers: await _headers,
-    );
-    if (response.statusCode == 200) {
-      final List jsonResponse = jsonDecode(response.body);
-      return jsonResponse.map((data) => ConsignmentHistory.fromJson(data)).toList();
-    } else {
-      throw Exception('Failed to load history (${response.statusCode})');
+  Future<List<ConsignmentHistory>> getConsignmentHistory() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/penitip/history'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        final List jsonResponse = jsonDecode(response.body);
+        return jsonResponse
+            .map((data) => ConsignmentHistory.fromJson(data))
+            .toList();
+      } else {
+        throw Exception('Failed to load history (${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Error getting consignment history: $e');
     }
-  } catch (e) {
-    throw Exception('Error getting consignment history: $e');
   }
-}
 
+  Future<Pembeli> getPembeliById(int id) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/pembeli/$id'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        return Pembeli.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Failed to load pembeli (${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Error getting pembeli: $e');
+    }
+  }
+
+  Future<Pembeli> getPembeliProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/pembeli/profile'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        return Pembeli.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Failed to load profile (${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Error getting profile: $e');
+    }
+  }
+
+  Future<List<PurchaseHistory>> getPurchaseHistoryById(int id) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/pembeli/$id/history'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        final List jsonResponse = jsonDecode(response.body);
+        return jsonResponse
+            .map((data) => PurchaseHistory.fromJson(data))
+            .toList();
+      } else {
+        throw Exception(
+            'Failed to load purchase history (${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error getting purchase history: $e');
+    }
+  }
+
+  Future<List<PurchaseHistory>> getPurchaseHistory() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/pembeli/history'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        final List jsonResponse = jsonDecode(response.body);
+        return jsonResponse
+            .map((data) => PurchaseHistory.fromJson(data))
+            .toList();
+      } else {
+        throw Exception(
+            'Failed to load purchase history (${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error getting purchase history: $e');
+    }
+  }
+
+  // ignore: unused_element
   Future<void> logout() async {
     try {
       final response = await http.post(
