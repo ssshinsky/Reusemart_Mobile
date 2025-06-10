@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:reusemart_mobile/models/pembeli.dart';
 import 'package:reusemart_mobile/services/api_client.dart';
+import 'purchase_detail_page.dart';
 
 class PembeliHistoryPage extends StatefulWidget {
   final ApiClient apiClient;
@@ -37,6 +38,13 @@ class _PembeliHistoryPageState extends State<PembeliHistoryPage> {
     } catch (e) {
       return null;
     }
+  }
+
+  // Format tanggal transaksi untuk judul
+  String _formatTransactionDate(String? dateString) {
+    if (dateString == null) return 'Unknown';
+    final date = _parseApiDate(dateString);
+    return date != null ? _formatDate(date) : 'Unknown';
   }
 
   @override
@@ -192,7 +200,7 @@ class _PembeliHistoryPageState extends State<PembeliHistoryPage> {
                   final historyList = snapshot.data!.where((history) {
                     if (_startDate == null && _endDate == null) return true;
                     final transDate =
-                        _parseApiDate(history?.tanggalTransaksi ?? '');
+                        _parseApiDate(history.tanggalTransaksi ?? '');
                     if (transDate == null) return false;
                     bool afterStart = _startDate == null ||
                         transDate.isAfter(
@@ -221,163 +229,183 @@ class _PembeliHistoryPageState extends State<PembeliHistoryPage> {
                     itemCount: historyList.length,
                     itemBuilder: (context, index) {
                       final history = historyList[index];
-                      return Card(
-                        elevation: 5,
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Transaksi #${history.idPembelian}',
-                                    style:
-                                        theme.textTheme.titleMedium?.copyWith(
-                                      fontSize: screenWidth * 0.045,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          history.statusTransaksi == 'selesai'
-                                              ? Colors.green.shade100
-                                              : Colors.orange.shade100,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Text(
-                                      history.statusTransaksi ?? 'Unknown',
-                                      style:
-                                          theme.textTheme.bodySmall?.copyWith(
-                                        fontSize: screenWidth * 0.03,
-                                        color:
-                                            history.statusTransaksi == 'selesai'
-                                                ? Colors.green
-                                                : Colors.orange,
-                                        fontWeight: FontWeight.w600,
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  PurchaseDetailPage(history: history),
+                            ),
+                          );
+                        },
+                        child: Card(
+                          elevation: 5,
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _formatTransactionDate(
+                                          history.tanggalTransaksi),
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                        fontSize: screenWidth * 0.045,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
                                       ),
                                     ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            history.statusTransaksi == 'selesai'
+                                                ? Colors.green.shade100
+                                                : Colors.orange.shade100,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Text(
+                                        history.statusTransaksi ?? 'Unknown',
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                          fontSize: screenWidth * 0.03,
+                                          color: history.statusTransaksi ==
+                                                  'selesai'
+                                              ? Colors.green
+                                              : Colors.orange,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'ID: #${history.idPembelian}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontSize: screenWidth * 0.035,
+                                    color: Colors.grey[600],
                                   ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Tanggal: ${history.tanggalTransaksi ?? 'Unknown'}',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  fontSize: screenWidth * 0.035,
-                                  color: Colors.grey[600],
                                 ),
-                              ),
-                              Text(
-                                'Total: Rp ${history.totalHarga.toStringAsFixed(0)}',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  fontSize: screenWidth * 0.035,
-                                  color: Colors.teal,
-                                  fontWeight: FontWeight.w600,
+                                Text(
+                                  'Total: Rp ${history.totalHarga.toStringAsFixed(0)}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontSize: screenWidth * 0.035,
+                                    color: Colors.teal,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                'Pengiriman: ${history.metodePengiriman ?? 'Unknown'}',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  fontSize: screenWidth * 0.035,
-                                  color: Colors.grey[600],
+                                Text(
+                                  'Pengiriman: ${history.metodePengiriman ?? 'Unknown'}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontSize: screenWidth * 0.035,
+                                    color: Colors.grey[600],
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Item:',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontSize: screenWidth * 0.04,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Item:',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontSize: screenWidth * 0.04,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              ...history.items.map((item) => Padding(
-                                    padding:
-                                        const EdgeInsets.symmetric(vertical: 4),
-                                    child: Row(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          child: item.gambar != null
-                                              ? Image.network(
-                                                  item.gambar!,
-                                                  width: screenWidth * 0.15,
-                                                  height: screenWidth * 0.15,
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (context, error,
-                                                          stackTrace) =>
-                                                      Icon(
-                                                    Icons.broken_image,
+                                const SizedBox(height: 8),
+                                ...history.items.map((item) => Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 4),
+                                      child: Row(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            child: item.gambar != null
+                                                ? Image.network(
+                                                    item.gambar!,
+                                                    width: screenWidth * 0.15,
+                                                    height: screenWidth * 0.15,
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder: (context,
+                                                            error,
+                                                            stackTrace) =>
+                                                        Icon(
+                                                      Icons.broken_image,
+                                                      size: screenWidth * 0.15,
+                                                      color: Colors.grey[400],
+                                                    ),
+                                                  )
+                                                : Icon(
+                                                    Icons.image_not_supported,
                                                     size: screenWidth * 0.15,
                                                     color: Colors.grey[400],
                                                   ),
-                                                )
-                                              : Icon(
-                                                  Icons.image_not_supported,
-                                                  size: screenWidth * 0.15,
-                                                  color: Colors.grey[400],
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  item.namaBarang ?? 'Unknown',
+                                                  style: theme.textTheme
+                                                      .bodyMedium
+                                                      ?.copyWith(
+                                                    fontSize:
+                                                        screenWidth * 0.035,
+                                                    color: Colors.black87,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                item.namaBarang ?? 'Unknown',
-                                                style: theme
-                                                    .textTheme.bodyMedium
-                                                    ?.copyWith(
-                                                  fontSize: screenWidth * 0.035,
-                                                  color: Colors.black87,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              Text(
-                                                'Rp ${item.hargaBarang.toStringAsFixed(0)}',
-                                                style: theme.textTheme.bodySmall
-                                                    ?.copyWith(
-                                                  fontSize: screenWidth * 0.03,
-                                                  color: Colors.teal,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                              if (item.rating != null)
-                                                Row(
-                                                  children: List.generate(
-                                                    5,
-                                                    (i) => Icon(
-                                                      i < item.rating!
-                                                          ? Icons.star
-                                                          : Icons.star_border,
-                                                      size: screenWidth * 0.04,
-                                                      color: Colors.yellow[700],
-                                                    ),
+                                                Text(
+                                                  'Rp ${item.hargaBarang.toStringAsFixed(0)}',
+                                                  style: theme.textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                    fontSize:
+                                                        screenWidth * 0.03,
+                                                    color: Colors.teal,
+                                                    fontWeight:
+                                                        FontWeight.w600,
                                                   ),
                                                 ),
-                                            ],
+                                                if (item.rating != null)
+                                                  Row(
+                                                    children: List.generate(
+                                                      5,
+                                                      (i) => Icon(
+                                                        i < item.rating!
+                                                            ? Icons.star
+                                                            : Icons.star_border,
+                                                        size:
+                                                            screenWidth * 0.04,
+                                                        color:
+                                                            Colors.yellow[700],
+                                                      ),
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  )),
-                            ],
+                                        ],
+                                      ),
+                                    )),
+                              ],
+                            ),
                           ),
                         ),
                       );

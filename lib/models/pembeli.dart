@@ -37,6 +37,7 @@ class PurchaseHistory {
   final int idPembelian;
   final String? tanggalTransaksi;
   final double totalHarga;
+  final double ongkir;
   final String? metodePengiriman;
   final String? statusTransaksi;
   final List<PurchaseItem> items;
@@ -45,6 +46,7 @@ class PurchaseHistory {
     required this.idPembelian,
     this.tanggalTransaksi,
     required this.totalHarga,
+    required this.ongkir,
     this.metodePengiriman,
     this.statusTransaksi,
     required this.items,
@@ -55,6 +57,7 @@ class PurchaseHistory {
       idPembelian: json['id_pembelian'] as int,
       tanggalTransaksi: json['tanggal_transaksi'] as String?,
       totalHarga: (json['total_harga'] as num).toDouble(),
+      ongkir: (json['ongkir'] as num).toDouble(),
       metodePengiriman: json['metode_pengiriman'] as String?,
       statusTransaksi: json['status_transaksi'] as String?,
       items: (json['items'] as List<dynamic>)

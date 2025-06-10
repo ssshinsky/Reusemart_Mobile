@@ -166,7 +166,7 @@ class PembeliProfilePage extends StatelessWidget {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              pembeli.status ?? 'Unknown',
+                              pembeli.status ?? 'Customer',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: pembeli.status == 'Active'
                                     ? Colors.green
