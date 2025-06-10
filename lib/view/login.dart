@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../services/api_client.dart';
-import '../main.dart';
+import 'penitip/penitip_profile_page.dart';
+import '../main.dart'; // HomeScreen
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -38,20 +39,50 @@ class _LoginPageState extends State<LoginPage> {
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
+
+      final role = result['role'];
+      // Validasi role sesuai dengan pilihan dropdown
+      if ((selectedRole == 'Kurir' && role != 'Kurir') ||
+          (selectedRole == 'Pembeli' && role != 'pembeli') ||
+          (selectedRole == 'Penitip' && role != 'penitip') ||
+          (selectedRole == 'Organisasi' && role != 'organisasi')) {
+        throw Exception('Role tidak sesuai dengan kredensial');
+      }
+
       if (mounted) {
         developer.log(
-          'Login berhasil: Email=${_emailController.text}, Role=${result['role']}',
+          'Login berhasil: Email=${_emailController.text}, Role=$role',
           name: 'LoginPage',
         );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomeScreen(
-              role: result['role'],
-              user: result['user'],
+
+        if (role == 'Penitip') {
+          final user = result['user'];
+          final penitipId = user['id'];
+          // Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(builder: (context) => const PenitipProfilePage()),
+          // );
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PenitipProfilePage(
+                apiClient: ApiClient(),
+                penitipId:
+                    penitipId, // Ganti dengan ID penitip yang mau ditampilkan
+              ),
             ),
-          ),
-        );
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomeScreen(
+                role: role,
+                user: result['user'],
+              ),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -102,7 +133,7 @@ class _LoginPageState extends State<LoginPage> {
                       color: Colors.green[700],
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.green.withOpacity(0.3), // Updated
+                          color: Colors.green.withOpacity(0.3),
                           blurRadius: 10,
                           spreadRadius: 2,
                         ),
@@ -150,12 +181,8 @@ class _LoginPageState extends State<LoginPage> {
                                 selectedRole = newValue;
                               });
                             },
-                            items: const <String>[
-                              'Pembeli',
-                              'Penitip',
-                              'Pegawai',
-                              'Organisasi'
-                            ].map<DropdownMenuItem<String>>((String value) {
+                            items: const <String>['Pembeli', 'Penitip', 'Kurir']
+                                .map<DropdownMenuItem<String>>((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
                                 child: Text(value),

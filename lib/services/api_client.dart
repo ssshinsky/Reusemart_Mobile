@@ -9,7 +9,7 @@ import '../models/kategori.dart';
 import '../models/top_seller.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://172.16.47.2:8000/api';
+  static const String baseUrl = 'http://192.168.100.65:8000/api';
   String? _token;
 
   Future<void> _ensureTokenLoaded() async {
@@ -119,6 +119,11 @@ class ApiClient {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('role', data['role']);
           await prefs.setString('user', jsonEncode(data['user']));
+           if (data['role'] == 'Kurir' && data['user']['id'] != null) {
+            await prefs.setInt('id_pegawai', data['user']['id']);
+          } else {
+            await prefs.remove('id_pegawai');
+          }
           return {
             'token': data['token'],
             'role': data['role'],
@@ -154,6 +159,23 @@ class ApiClient {
     }
   }
 
+  // Method baru buat ngambil penitip by ID
+      Future<Penitipp> getPenitipById(int id) async {
+          try {
+              final response = await http.get(
+                  Uri.parse('$baseUrl/penitip/$id'),
+                  headers: await _headers,
+              );
+              if (response.statusCode == 200) {
+                  return Penitipp.fromJson(jsonDecode(response.body));
+              } else {
+                  throw Exception('Failed to load penitip (${response.statusCode})');
+              }
+          } catch (e) {
+              throw Exception('Error getting penitip: $e');
+          }
+      }
+
   Future<Penitipp> getPenitipProfile() async {
   try {
     final response = await http.get(
@@ -167,6 +189,23 @@ class ApiClient {
     }
   } catch (e) {
     throw Exception('Error getting profile: $e');
+  }
+}
+
+Future<List<ConsignmentHistory>> getConsignmentHistoryById(int id) async {
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/penitip/$id/history'),
+      headers: await _headers,
+    );
+    if (response.statusCode == 200) {
+      final List jsonResponse = jsonDecode(response.body);
+      return jsonResponse.map((data) => ConsignmentHistory.fromJson(data)).toList();
+    } else {
+      throw Exception('Failed to load history (${response.statusCode})');
+    }
+  } catch (e) {
+    throw Exception('Error getting consignment history: $e');
   }
 }
 
