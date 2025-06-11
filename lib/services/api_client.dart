@@ -1,9 +1,8 @@
 import 'dart:convert';
-import 'dart:developer' as developer; // Added import
+import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import 'package:reusemart_mobile/models/pembeli.dart';
 import 'package:reusemart_mobile/models/penitip.dart';
-// import 'package:reusemart_mobile/models/penitip_history.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/barang.dart';
 import '../models/kategori.dart';
@@ -38,25 +37,29 @@ class ApiClient {
     await _ensureTokenLoaded();
     return {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
       if (_token != null) 'Authorization': 'Bearer $_token',
     };
   }
 
-  Future<TopSeller?> getTopSeller() async {
+   Future<Map<String, dynamic>> getTopSeller() async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/top-seller'),
-        headers: {'Accept': 'application/json'},
+        headers: await _headers,
       );
 
       developer.log(
-          'Top Seller Response: ${response.statusCode} - ${response.body}',
-          name: 'ApiClient');
+        'Top Seller Response: ${response.statusCode} - ${response.body}',
+        name: 'ApiClient',
+      );
 
       if (response.statusCode == 200) {
-        return TopSeller.fromJson(jsonDecode(response.body));
-      } else if (response.statusCode == 404) {
-        return null;
+        final data = jsonDecode(response.body);
+        return {
+          'last_month': data['last_month'],
+          'top_seller': data['top_seller'] != null ? TopSeller.fromJson(data['top_seller']) : null,
+        };
       } else {
         throw Exception('Failed to load top seller: ${response.statusCode}');
       }
@@ -67,21 +70,35 @@ class ApiClient {
   }
 
   Future<List<Barang>> getBarang() async {
-    final response = await http.get(Uri.parse('$baseUrl/barang'));
-    if (response.statusCode == 200) {
-      List jsonResponse = jsonDecode(response.body);
-      return jsonResponse.map((data) => Barang.fromJson(data)).toList();
-    } else {
-      throw Exception('Failed to load barang: ${response.statusCode}');
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/barang'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        List jsonResponse = jsonDecode(response.body);
+        return jsonResponse.map((data) => Barang.fromJson(data)).toList();
+      } else {
+        throw Exception('Failed to load barang: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error getting barang: $e');
     }
   }
 
   Future<Barang> getBarangById(int id) async {
-    final response = await http.get(Uri.parse('$baseUrl/barang/$id'));
-    if (response.statusCode == 200) {
-      return Barang.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to load barang: ${response.statusCode}');
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/barang/$id'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        return Barang.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Failed to load barang: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error getting barang: $e');
     }
   }
 
@@ -106,7 +123,7 @@ class ApiClient {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/login'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
         body: jsonEncode({
           'email': email,
           'password': password,
@@ -162,7 +179,6 @@ class ApiClient {
     }
   }
 
-  // Method baru buat ngambil penitip by ID
   Future<Penitipp> getPenitipById(int id) async {
     try {
       final response = await http.get(
@@ -305,7 +321,6 @@ class ApiClient {
     }
   }
 
-  // ignore: unused_element
   Future<void> logout() async {
     try {
       final response = await http.post(

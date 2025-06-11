@@ -245,7 +245,7 @@ class HomeContent extends StatelessWidget {
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: FutureBuilder<TopSeller?>(
+                child: FutureBuilder<Map<String, dynamic>>(
                   future: apiClient.getTopSeller(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
@@ -279,9 +279,9 @@ class HomeContent extends StatelessWidget {
                           ),
                         ],
                       );
-                    } else if (!snapshot.hasData) {
+                    } else if (!snapshot.hasData || snapshot.data!['top_seller'] == null) {
                       return Text(
-                        'Belum ada Top Seller untuk bulan ini.',
+                        'Belum ada Top Seller untuk ${snapshot.data?['last_month'] ?? 'bulan ini'}.',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: Colors.grey,
                           fontSize: screenWidth * 0.04,
@@ -290,7 +290,10 @@ class HomeContent extends StatelessWidget {
                       );
                     }
 
-                    final topSeller = snapshot.data!;
+                    final data = snapshot.data!;
+                    final topSeller = data['top_seller'] as TopSeller;
+                    final lastMonth = data['last_month'];
+
                     return Row(
                       children: [
                         ClipRRect(
@@ -333,45 +336,58 @@ class HomeContent extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '#1 Top Seller: ${topSeller.bulan}',
+                                '#1 Top Seller of Reusemart',
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   fontSize: screenWidth * 0.035,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.teal,
                                 ),
                               ),
-                              Text(
-                                topSeller.namaPenitip,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontSize: screenWidth * 0.045,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              Text(
-                                '${topSeller.jumlahBarang} items sold | Rp ${topSeller.totalPenjualan.toStringAsFixed(0)}',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  fontSize: screenWidth * 0.03,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.yellow[600],
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  'Top Seller',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    fontSize: screenWidth * 0.03,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.teal,
+                              Row(
+                                children: [
+                                  Text(
+                                    topSeller.namaPenitip,
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      fontSize: screenWidth * 0.045,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF2E7D32),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.military_tech,
+                                          color: Colors.white,
+                                          size: 14,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'Top Seller',
+                                          style: theme.textTheme.bodySmall?.copyWith(
+                                            fontSize: screenWidth * 0.03,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
+                              // Text(
+                              //   '${topSeller.soldCount} items sold | Rp ${topSeller.totalSales.toStringAsFixed(0)}',
+                              //   style: theme.textTheme.bodySmall?.copyWith(
+                              //     fontSize: screenWidth * 0.03,
+                              //     color: Colors.grey[600],
+                              //   ),
+                              // ),
                             ],
                           ),
                         ),
