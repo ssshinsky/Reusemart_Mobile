@@ -23,3 +23,11 @@ dev_dependencies:
   test: ^1.24.0
   flutter_test:
     sdk : flutter
+
+flutter:
+  uses-material-design: true
+  # Tidak perlu menambahkan fonts untuk Material Icons
+  # Jika menggunakan font kustom lain, tambahkan di sini
+  assets:
+    # Tambahkan aset lain jika ada, misalnya gambar
+    - assets/images/carousel1.png

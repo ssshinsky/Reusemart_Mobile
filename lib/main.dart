@@ -410,7 +410,7 @@ class HomeContent extends StatelessWidget {
                   itemBuilder: (context, index, realIndex) {
                     final banner = {
                       0: {
-                        'image': 'https://via.placeholder.com/400x150',
+                        'image': 'assets/images/',
                         'title': 'Recycle for a Better Tomorrow',
                         'subtitle': 'From You, For All of Us',
                       },

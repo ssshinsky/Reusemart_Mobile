@@ -406,34 +406,34 @@ class PurchaseDetailPage extends StatelessWidget {
               _buildItemsList(context, screenWidth),
               const SizedBox(height: 16),
               Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Placeholder untuk aksi, misal lacak pengiriman
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Fitur lacak pengiriman belum tersedia'),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 5,
-                  ),
-                  child: Text(
-                    'Lacak Pengiriman',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white,
-                      fontSize: screenWidth * 0.04,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+                // child: ElevatedButton(
+                //   onPressed: () {
+                //     // Placeholder untuk aksi, misal lacak pengiriman
+                //     ScaffoldMessenger.of(context).showSnackBar(
+                //       const SnackBar(
+                //         content: Text('Fitur lacak pengiriman belum tersedia'),
+                //       ),
+                //     );
+                //   },
+                //   style: ElevatedButton.styleFrom(
+                //     backgroundColor: Colors.teal,
+                //     foregroundColor: Colors.white,
+                //     padding: const EdgeInsets.symmetric(
+                //         horizontal: 24, vertical: 12),
+                //     shape: RoundedRectangleBorder(
+                //       borderRadius: BorderRadius.circular(12),
+                //     ),
+                //     elevation: 5,
+                //   ),
+                //   child: Text(
+                //     'Lacak Pengiriman',
+                //     style: theme.textTheme.bodyMedium?.copyWith(
+                //       color: Colors.white,
+                //       fontSize: screenWidth * 0.04,
+                //       fontWeight: FontWeight.w500,
+                //     ),
+                //   ),
+                // ),
               ),
             ],
           ),
