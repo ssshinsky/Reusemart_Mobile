@@ -3,10 +3,12 @@ import 'dart:developer' as developer; // Added import
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/barang.dart';
+import '../models/pegawai.dart';
 import '../models/kategori.dart';
+import '../models/transaksi_pembelian.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://172.16.0.4:8000/api';
+  static const String baseUrl = 'http://192.168.170.241:8000/api';
   String? _token;
 
   Future<void> _ensureTokenLoaded() async {
@@ -41,7 +43,7 @@ class ApiClient {
   Future<List<Barang>> getBarang() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/produk/allProduct'),
+        Uri.parse('$baseUrl/barang/allProduct'),
         headers: await _headers,
       );
       if (response.statusCode == 200) {
@@ -58,7 +60,7 @@ class ApiClient {
   Future<Barang> getBarangById(int id) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/produk/detail/$id'),
+        Uri.parse('$baseUrl/barang/detail/$id'),
         headers: await _headers,
       );
       if (response.statusCode == 200) {
@@ -108,6 +110,11 @@ class ApiClient {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('role', data['role']);
           await prefs.setString('user', jsonEncode(data['user']));
+          if (data['role'] == 'Kurir' && data['user']['id'] != null) {
+            await prefs.setInt('id_pegawai', data['user']['id']);
+          } else {
+            await prefs.remove('id_pegawai');
+          }
           return {
             'token': data['token'],
             'role': data['role'],
@@ -159,6 +166,178 @@ class ApiClient {
       }
     } catch (e) {
       throw Exception('Logout error: $e');
+    }
+  }
+
+  Future<Pegawai> getProfile() async {
+    final headers = await _headers;
+    final response = await http.get(
+      Uri.parse('$baseUrl/kurir/profile'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      return Pegawai.fromJson(jsonDecode(response.body));
+    }
+    throw Exception('Gagal memuat profil');
+  }
+
+  Future<List<TransaksiPembelian>> getTransaksiKurir({
+    int perPage = 10,
+    int page = 1,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final idPegawai = prefs.getInt('id_pegawai') ?? 0;
+
+    if (idPegawai == 0) {
+      developer.log('Invalid id_pegawai', name: 'ApiClient');
+      throw Exception('ID Pegawai tidak valid');
+    }
+
+    final url = Uri.parse('$baseUrl/kurir/kelola-transaksi/kurir/$idPegawai');
+    final headers = {'Content-Type': 'application/json'};
+
+    try {
+      final response = await http
+          .get(url, headers: headers)
+          .timeout(const Duration(seconds: 10));
+
+      developer.log('Response: ${response.statusCode}', name: 'ApiClient');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+
+        if (jsonResponse['status'] == 'success') {
+          final List<dynamic> data = jsonResponse['data'] ?? [];
+
+          return data.map((item) => TransaksiPembelian.fromJson(item)).toList();
+        } else {
+          throw Exception('Gagal: ${jsonResponse['message']}');
+        }
+      } else {
+        throw Exception('HTTP Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      developer.log('Exception in getTransaksiKurir',
+          error: e, name: 'ApiClient');
+      throw Exception('Gagal memuat data transaksi kurir: $e');
+    }
+  }
+
+  Future<List<TransaksiPembelian>> getActiveDeliveries(
+      {int idPegawai = 0}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final pegawaiId =
+        idPegawai != 0 ? idPegawai : (prefs.getInt('id_pegawai') ?? 0);
+
+    if (pegawaiId == 0) {
+      developer.log('Kesalahan: id_pegawai tidak valid',
+          name: 'ApiClient', error: {'id_pegawai': pegawaiId});
+      throw Exception('ID Pegawai tidak valid. Silakan login ulang.');
+    }
+
+    final headers = {'Content-Type': 'application/json'};
+    final url = Uri.parse('$baseUrl/kurir/active-deliveries/$pegawaiId');
+
+    developer.log('Permintaan: GET $url', name: 'ApiClient');
+    developer.log('Header: $headers', name: 'ApiClient');
+    developer.log('id_pegawai: $pegawaiId', name: 'ApiClient');
+
+    try {
+      final response = await http.get(url, headers: headers).timeout(
+        Duration(seconds: 30),
+        onTimeout: () {
+          developer.log('Kesalahan: Permintaan timeout setelah 30 detik',
+              name: 'ApiClient');
+          throw Exception(
+              'Permintaan ke server terlalu lama. Silakan coba lagi nanti.');
+        },
+      );
+
+      developer.log(
+          'Respons: ${response.statusCode} - ${response.body.length > 500 ? '${response.body.substring(0, 500)}...' : response.body}',
+          name: 'ApiClient');
+
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body) as Map<String, dynamic>;
+        developer.log('JSON Terurai: $jsonResponse', name: 'ApiClient');
+        if (jsonResponse['status'] != 'success') {
+          developer.log('Kesalahan: Status respons tidak valid',
+              name: 'ApiClient', error: jsonResponse['message']);
+          throw Exception(
+              'Respons tidak valid: ${jsonResponse['message'] ?? 'Kesalahan tidak diketahui'}');
+        }
+        final List<dynamic> data = jsonResponse['data'] ?? [];
+        if (data.isEmpty) {
+          developer.log('Peringatan: Tidak ada transaksi ditemukan',
+              name: 'ApiClient');
+          return [];
+        }
+        return data.map((json) => TransaksiPembelian.fromJson(json)).toList();
+      } else {
+        developer.log('Kesalahan: Respons non-200',
+            name: 'ApiClient',
+            error: {'statusCode': response.statusCode, 'body': response.body});
+        throw Exception(
+            'Gagal memuat transaksi aktif: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      developer.log('Kesalahan: Gagal mengambil transaksi aktif',
+          name: 'ApiClient', error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> updateStatusTransaksi(int idPembelian, String status) async {
+    final prefs = await SharedPreferences.getInstance();
+    final idPegawai = prefs.getInt('id_pegawai') ?? 0;
+
+    if (idPegawai == 0) {
+      developer.log('Invalid id_pegawai', name: 'ApiClient');
+      throw Exception('ID Pegawai tidak valid');
+    }
+
+    final url = Uri.parse(
+        '$baseUrl/kurir/transaksi-pembelian/$idPembelian/status/transaksi');
+    final headers = {'Content-Type': 'application/json'};
+    final body = jsonEncode({
+      'status_transaksi': status,
+      'id_pegawai': idPegawai,
+    });
+
+    developer.log('Permintaan: PUT $url', name: 'ApiClient');
+    developer.log('Body: $body', name: 'ApiClient');
+
+    try {
+      final response = await http
+          .put(
+            url,
+            headers: headers,
+            body: body,
+          )
+          .timeout(const Duration(seconds: 10));
+
+      developer.log(
+        'Response: ${response.statusCode} - ${response.body}',
+        name: 'ApiClient',
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['status'] != 'success') {
+          throw Exception(
+              'Gagal: ${jsonResponse['message'] ?? 'Respons tidak valid'}');
+        }
+        return;
+      } else {
+        throw Exception(
+          'HTTP Error: ${response.statusCode} - ${response.body}',
+        );
+      }
+    } catch (e) {
+      developer.log('Exception in updateStatusTransaksi: $e',
+          name: 'ApiClient');
+      throw Exception('Gagal memperbarui status transaksi: $e');
     }
   }
 }

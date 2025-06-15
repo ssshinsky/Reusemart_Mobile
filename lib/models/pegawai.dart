@@ -1,0 +1,34 @@
+class Pegawai {
+  final int idPegawai;
+  final int idRole;
+  final String namaPegawai;
+  final String alamatPegawai;
+  final String tanggalLahir;
+  final String nomorTelepon;
+  final String emailPegawai;
+  final String? profilPict;
+
+  Pegawai({
+    required this.idPegawai,
+    required this.idRole,
+    required this.namaPegawai,
+    required this.alamatPegawai,
+    required this.tanggalLahir,
+    required this.nomorTelepon,
+    required this.emailPegawai,
+    this.profilPict,
+  });
+
+  factory Pegawai.fromJson(Map<String, dynamic> json) {
+    return Pegawai(
+      idPegawai: json['id_pegawai'] ?? 0,
+      idRole: json['id_role'] ?? 0,
+      namaPegawai: json['nama_pegawai'] ?? '',
+      alamatPegawai: json['alamat_pegawai'] ?? '',
+      tanggalLahir: json['tanggal_lahir'] ?? '',
+      nomorTelepon: json['nomor_telepon'] ?? '',
+      emailPegawai: json['email_pegawai'] ?? '',
+      profilPict: json['profil_pict'],
+    );
+  }
+}
