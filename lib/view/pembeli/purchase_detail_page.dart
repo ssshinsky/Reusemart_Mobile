@@ -29,75 +29,74 @@ class PurchaseDetailPage extends StatelessWidget {
   }
 
   // Widget untuk timeline status
-  Widget _buildStatusTimeline(BuildContext context, double screenWidth) {
-    final theme = Theme.of(context);
-    final status = history.statusTransaksi?.toLowerCase() ?? 'unknown';
-    final statuses = [
-      {'label': 'Dipesan', 'completed': true},
-      {
-        'label': 'Dikemas',
-        'completed': ['dikemas', 'dikirim', 'selesai'].contains(status)
-      },
-      {
-        'label': 'Dikirim',
-        'completed': ['dikirim', 'selesai'].contains(status)
-      },
-      {'label': 'Selesai', 'completed': status == 'selesai'},
-    ];
+Widget _buildStatusTimeline(BuildContext context, double screenWidth) {
+  final theme = Theme.of(context);
+  final status = history.statusTransaksi?.toLowerCase() ?? 'unknown';
+  final statuses = [
+    {'label': 'Dipesan', 'completed': true},
+    {
+      'label': 'Dikemas',
+      'completed': ['dikemas', 'dikirim', 'selesai'].contains(status)
+    },
+    {
+      'label': 'Dikirim',
+      'completed': ['dikirim', 'selesai'].contains(status)
+    },
+    {'label': 'Selesai', 'completed': status == 'selesai'},
+  ];
 
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Status Pesanan',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontSize: screenWidth * 0.045,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
+  return Card(
+    elevation: 3,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Status Pesanan',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontSize: screenWidth * 0.045,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
             ),
-            const SizedBox(height: 12),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
-                  children: List.generate(statuses.length * 2 - 1, (index) {
-                    if (index.isEven) {
-                      final statusIndex = index ~/ 2;
-                      return CircleAvatar(
-                        radius: screenWidth * 0.03,
-                        backgroundColor: statuses[statusIndex]['completed'] as bool
-                            ? Colors.teal
-                            : Colors.grey[300],
-                        child: Icon(
-                          Icons.check,
-                          size: screenWidth * 0.03,
-                          color: Colors.white,
-                        ),
-                      );
-                    } else {
-                      return Container(
-                        width: 2,
-                        height: screenWidth * 0.06,
-                        color: statuses[(index + 1) ~/ 2]['completed'] as bool
-                            ? Colors.teal
-                            : Colors.grey[300],
-                      );
-                    }
-                  }),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    children: statuses.asMap().entries.map((entry) {
-                      final status = entry.value;
-                      return Container(
-                        margin: EdgeInsets.symmetric(vertical: screenWidth * 0.015),
+          ),
+          const SizedBox(height: 12),
+          Column(
+            children: List.generate(statuses.length, (index) {
+              final status = statuses[index];
+              final isLast = index == statuses.length - 1;
+              return Column(
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircleAvatar(
+                            radius: screenWidth * 0.03,
+                            backgroundColor: status['completed'] as bool
+                                ? Colors.teal
+                                : Colors.grey[300],
+                            child: Icon(
+                              Icons.check,
+                              size: screenWidth * 0.03,
+                              color: Colors.white,
+                            ),
+                          ),
+                          if (!isLast)
+                            Container(
+                              width: 2,
+                              height: screenWidth * 0.06,
+                              color: statuses[index + 1]['completed'] as bool
+                                  ? Colors.teal
+                                  : Colors.grey[300],
+                            ),
+                        ],
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
                         child: Text(
                           status['label'] as String,
                           style: theme.textTheme.bodyMedium?.copyWith(
@@ -110,17 +109,18 @@ class PurchaseDetailPage extends StatelessWidget {
                                 : FontWeight.normal,
                           ),
                         ),
-                      );
-                    }).toList(),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-          ],
-        ),
+                ],
+              );
+            }),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   // Widget untuk detail transaksi
   Widget _buildTransactionInfo(BuildContext context, double screenWidth) {
@@ -160,11 +160,60 @@ class PurchaseDetailPage extends StatelessWidget {
               'Metode Pengiriman',
               history.metodePengiriman ?? 'Unknown',
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Widget untuk alamat
+  Widget _buildAddressWidget(BuildContext context, double screenWidth) {
+    final theme = Theme.of(context);
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Alamat Pengiriman',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontSize: screenWidth * 0.045,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 12),
             _buildInfoRow(
               context,
               screenWidth,
-              'Alamat Pengiriman',
-              'Belum tersedia', // Placeholder, tambah kalo ada di API
+              'Label',
+              'Rumah',
+            ),
+            _buildInfoRow(
+              context,
+              screenWidth,
+              'Penerima',
+              'Eunwoo',
+            ),
+            Text(
+              'Alamat',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: screenWidth * 0.035,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Jl. Sudirman No. 45, Kelurahan Cikini, Kecamatan Menteng, Jakarta Pusat',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontSize: screenWidth * 0.035,
+                color: Colors.black87,
+              ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -400,6 +449,8 @@ class PurchaseDetailPage extends StatelessWidget {
               _buildStatusTimeline(context, screenWidth),
               const SizedBox(height: 16),
               _buildTransactionInfo(context, screenWidth),
+              const SizedBox(height: 16),
+              _buildAddressWidget(context, screenWidth),
               const SizedBox(height: 16),
               _buildPaymentInfo(context, screenWidth),
               const SizedBox(height: 16),
