@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:reusemart_mobile/models/top_seller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'services/api_client.dart';
 import 'models/barang.dart';
 import 'models/kategori.dart';
 import 'view/login.dart';
-import 'dart:convert'; // Untuk jsonDecode
+import 'view/penitip/consignment_history_page.dart';
+import 'view/penitip/penitip_profile_page.dart';
+import 'view/pembeli/pembeli_history_page.dart';
+import 'view/pembeli/pembeli_profile_page.dart';
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
@@ -29,8 +34,8 @@ class MyApp extends StatelessWidget {
 }
 
 class HomeScreen extends StatefulWidget {
-  final String? role; // Parameter opsional
-  final Map<String, dynamic>? user; // Parameter opsional
+  final String? role;
+  final Map<String, dynamic>? user;
 
   const HomeScreen({super.key, this.role, this.user});
 
@@ -40,27 +45,46 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ApiClient apiClient = ApiClient();
+  String? _currentRole;
+  Map<String, dynamic>? _currentUser;
+  int _selectedIndex = 0;
 
-  // List untuk carousel
-  final List<Map<String, String>> banners = [
-    {
-      'image': 'https://via.placeholder.com/400x150',
-      'title': 'Recycle for a Better Tomorrow',
-      'subtitle': 'From You, For All of Us',
-    },
-    {
-      'image': 'https://via.placeholder.com/400x150/FF5733',
-      'title': 'Big Sale 50% Off',
-      'subtitle': 'Grab your favorites now!',
-    },
-    {
-      'image': 'https://via.placeholder.com/400x150/33FF57',
-      'title': 'New Arrivals',
-      'subtitle': 'Check out the latest collections!',
-    },
-  ];
+  List<Widget> get _pages {
+    final role = _currentRole ?? widget.role?.toLowerCase();
+    final user = _currentUser ?? widget.user;
 
-  // Fungsi untuk memeriksa status login dan mendapatkan data pengguna
+    if (role == 'penitip' && user != null) {
+      return [
+        const HomeContent(),
+        ConsignmentHistoryPage(apiClient: apiClient, penitipId: user['id']),
+        PenitipProfilePage(apiClient: apiClient, penitipId: user['id']),
+      ];
+    } else if (role == 'pembeli' && user != null) {
+      return [
+        const HomeContent(),
+        PembeliHistoryPage(apiClient: apiClient, pembeliId: user['id']),
+        PembeliProfilePage(apiClient: apiClient, pembeliId: user['id']),
+      ];
+    }
+    return [const HomeContent()];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLoginStatus();
+  }
+
+  Future<void> _loadLoginStatus() async {
+    final status = await _checkLoginStatus();
+    if (mounted) {
+      setState(() {
+        _currentRole = status['role']?.toLowerCase();
+        _currentUser = status['user'];
+      });
+    }
+  }
+
   Future<Map<String, dynamic>> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
@@ -75,11 +99,13 @@ class _HomeScreenState extends State<HomeScreen> {
     };
   }
 
-  // Fungsi untuk logout
   Future<void> _logout() async {
     await apiClient.clearToken();
-    setState(() {});
     if (mounted) {
+      setState(() {
+        _currentRole = null;
+        _currentUser = null;
+      });
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginPage()),
@@ -87,8 +113,19 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final theme = Theme.of(context);
+    final role = _currentRole ?? widget.role?.toLowerCase();
+    final user = _currentUser ?? widget.user;
+
     return Scaffold(
       appBar: AppBar(
         leading: Padding(
@@ -96,179 +133,419 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Image.network(
             'https://via.placeholder.com/40',
             fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => const Icon(
+              Icons.store,
+              color: Colors.white,
+            ),
           ),
         ),
-        title: FutureBuilder<Map<String, dynamic>>(
-          future: _checkLoginStatus(),
-          builder: (context, snapshot) {
-            String title = 'ReuseMart';
-            if (snapshot.connectionState == ConnectionState.done &&
-                snapshot.hasData &&
-                snapshot.data!['isLoggedIn'] &&
-                snapshot.data!['user'] != null) {
-              title = 'Selamat Datang, ${snapshot.data!['user']['nama']}';
-            } else if (widget.user != null) {
-              title = 'Selamat Datang, ${widget.user!['nama']}';
-            }
-            return Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-                color: Colors.white,
-              ),
-            );
-          },
+        title: Text(
+          user != null ? 'Selamat Datang, ${user['nama']}' : 'ReuseMart',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+            fontSize: screenWidth * 0.04,
+          ),
         ),
         actions: [
-          FutureBuilder<Map<String, dynamic>>(
-            future: _checkLoginStatus(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox.shrink();
+          TextButton(
+            onPressed: () async {
+              if (user != null) {
+                await _logout();
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                );
               }
-              final isLoggedIn = snapshot.data?['isLoggedIn'] ?? false;
-              return TextButton(
-                onPressed: () async {
-                  if (isLoggedIn || widget.user != null) {
-                    await _logout();
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const LoginPage()),
-                    );
-                  }
-                },
-                child: Text(
-                  isLoggedIn || widget.user != null ? 'Logout' : 'Login',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                  ),
-                ),
-              );
             },
+            child: Text(
+              user != null ? 'Logout' : 'Login',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: screenWidth * 0.035,
+              ),
+            ),
           ),
         ],
-        backgroundColor: const Color(0xFF2E7D32),
-        elevation: 6,
-        shadowColor: Colors.green.withValues(alpha: 0.3),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.green, Colors.teal],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 0,
       ),
-      body: SingleChildScrollView(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.white, Color(0xFFE0F7FA)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: _pages[_selectedIndex],
+      ),
+      bottomNavigationBar:
+          (role == 'penitip' || role == 'pembeli') && user != null
+              ? BottomNavigationBar(
+                  currentIndex: _selectedIndex,
+                  onTap: _onItemTapped,
+                  items: const [
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.home),
+                      label: 'Home',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.history),
+                      label: 'History',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.person),
+                      label: 'Profil',
+                    ),
+                  ],
+                  selectedItemColor: Colors.teal,
+                  unselectedItemColor: Colors.grey,
+                  showUnselectedLabels: true,
+                  backgroundColor: Colors.white,
+                  elevation: 5,
+                  type: BottomNavigationBarType.fixed,
+                )
+              : null,
+    );
+  }
+}
+
+class HomeContent extends StatelessWidget {
+  const HomeContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final theme = Theme.of(context);
+    final apiClient = ApiClient();
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Carousel Banner
-            Container(
-              margin:
-                  const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
-              child: CarouselSlider.builder(
-                itemCount: banners.length,
-                itemBuilder: (context, index, realIndex) {
-                  final banner = banners[index];
-                  return Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Image.network(
-                            banner['image']!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(color: Colors.grey[300]),
+            const SizedBox(height: 20),
+            Card(
+              elevation: 5,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: FutureBuilder<Map<String, dynamic>>(
+                  future: apiClient.getTopSeller(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 4,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.teal),
                           ),
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.black.withValues(alpha: 0.7),
-                                  Colors.transparent,
-                                ],
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                              ),
+                        ),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: Colors.redAccent,
+                            size: 40,
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Gagal memuat Top Seller.',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: Colors.redAccent,
+                              fontSize: screenWidth * 0.04,
                             ),
-                            padding: const EdgeInsets.all(20.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Text(
-                                  banner['title']!,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  banner['subtitle']!,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
+                            textAlign: TextAlign.center,
                           ),
                         ],
-                      ),
-                    ),
-                  );
-                },
-                options: CarouselOptions(
-                  height: 200,
-                  autoPlay: true,
-                  autoPlayInterval: const Duration(seconds: 4),
-                  enlargeCenterPage: true,
-                  viewportFraction: 0.9,
-                  enableInfiniteScroll: true,
-                ),
-              ),
-            ),
+                      );
+                    } else if (!snapshot.hasData ||
+                        snapshot.data!['top_seller'] == null) {
+                      return Text(
+                        'Belum ada Top Seller untuk ${snapshot.data?['last_month'] ?? 'bulan ini'}.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey,
+                          fontSize: screenWidth * 0.04,
+                        ),
+                        textAlign: TextAlign.center,
+                      );
+                    }
 
-            // Kategori Section
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                'BROWSE BY CATEGORY',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF2E7D32),
+                    final data = snapshot.data!;
+                    final topSeller = data['top_seller'] as TopSeller;
+                    final lastMonth = data['last_month'];
+
+                    return Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(50),
+                          child: topSeller.profilPict != null
+                              ? Image.network(
+                                  topSeller.profilPict!,
+                                  width: screenWidth * 0.15,
+                                  height: screenWidth * 0.15,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      CircleAvatar(
+                                    radius: screenWidth * 0.075,
+                                    backgroundColor: Colors.teal.shade100,
+                                    child: Text(
+                                      topSeller.namaPenitip[0].toUpperCase(),
+                                      style: TextStyle(
+                                        color: Colors.teal,
+                                        fontSize: screenWidth * 0.05,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : CircleAvatar(
+                                  radius: screenWidth * 0.075,
+                                  backgroundColor: Colors.teal.shade100,
+                                  child: Text(
+                                    topSeller.namaPenitip[0].toUpperCase(),
+                                    style: TextStyle(
+                                      color: Colors.teal,
+                                      fontSize: screenWidth * 0.05,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '#1 Top Seller of Reusemart',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontSize: screenWidth * 0.035,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.teal,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    topSeller.namaPenitip,
+                                    style:
+                                        theme.textTheme.titleMedium?.copyWith(
+                                      fontSize: screenWidth * 0.045,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF2E7D32),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.military_tech,
+                                          color: Colors.white,
+                                          size: 14,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'Top Seller',
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                            fontSize: screenWidth * 0.03,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              // Text(
+                              //   '${topSeller.soldCount} items sold | Rp ${topSeller.totalSales.toStringAsFixed(0)}',
+                              //   style: theme.textTheme.bodySmall?.copyWith(
+                              //     fontSize: screenWidth * 0.03,
+                              //     color: Colors.grey[600],
+                              //   ),
+                              // ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
+            const SizedBox(height: 20),
+            Card(
+              elevation: 5,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(15),
+                child: CarouselSlider.builder(
+                  itemCount: 3,
+                  itemBuilder: (context, index, realIndex) {
+                    final banner = {
+                      0: {
+                        'image': 'assets/images/',
+                        'title': 'Recycle for a Better Tomorrow',
+                        'subtitle': 'From You, For All of Us',
+                      },
+                      1: {
+                        'image': 'https://via.placeholder.com/400x150/FF5733',
+                        'title': 'Big Sale 50% Off',
+                        'subtitle': 'Grab your favorites now!',
+                      },
+                      2: {
+                        'image': 'https://via.placeholder.com/400x150/33FF57',
+                        'title': 'New Arrivals',
+                        'subtitle': 'Check out the latest collections!',
+                      },
+                    }[index]!;
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.network(
+                          banner['image']!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(color: Colors.grey[300]),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.black.withValues(),
+                                Colors.transparent,
+                              ],
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                            ),
+                          ),
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                banner['title']!,
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  color: Colors.white,
+                                  fontSize: screenWidth * 0.05,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                banner['subtitle']!,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: Colors.white70,
+                                  fontSize: screenWidth * 0.035,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                  options: CarouselOptions(
+                    height: 200,
+                    autoPlay: true,
+                    autoPlayInterval: const Duration(seconds: 4),
+                    enlargeCenterPage: true,
+                    viewportFraction: 0.9,
+                    enableInfiniteScroll: true,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'BROWSE BY CATEGORY',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontSize: screenWidth * 0.05,
+                fontWeight: FontWeight.w600,
+                color: Colors.teal,
+              ),
+            ),
+            const SizedBox(height: 10),
             FutureBuilder<List<Kategori>>(
               future: apiClient.getKategori(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 4,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+                      ),
+                    ),
+                  );
                 } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.redAccent,
+                        size: 40,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Gagal memuat kategori.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.redAccent,
+                          fontSize: screenWidth * 0.04,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('Tidak ada kategori'));
+                  return Text(
+                    'Tidak ada kategori',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey,
+                      fontSize: screenWidth * 0.04,
+                    ),
+                    textAlign: TextAlign.center,
+                  );
                 }
 
                 final kategoriList = snapshot.data!;
-                return Container(
+                return SizedBox(
                   height: 120,
-                  margin: const EdgeInsets.symmetric(vertical: 12.0),
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: kategoriList.length,
@@ -277,55 +554,44 @@ class _HomeScreenState extends State<HomeScreen> {
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 6.0),
                         child: GestureDetector(
-                          onTap: () {
-                            // Logika klik kategori
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            width: 100,
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
+                          onTap: () {},
+                          child: Card(
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey[300]!),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
                             ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                CircleAvatar(
-                                  radius: 25,
-                                  backgroundImage: const NetworkImage(
-                                    'https://via.placeholder.com/50',
-                                  ),
-                                  child: Text(
-                                    kategori.namaKategori[0],
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
+                            child: Container(
+                              width: 100,
+                              padding: const EdgeInsets.all(10),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  CircleAvatar(
+                                    radius: 25,
+                                    backgroundColor: Colors.teal.shade100,
+                                    child: Text(
+                                      kategori.namaKategori[0],
+                                      style: TextStyle(
+                                        color: Colors.teal,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: screenWidth * 0.04,
+                                      ),
                                     ),
                                   ),
-                                  backgroundColor: const Color(0xFF2E7D32),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  kategori.namaKategori,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xFF2E7D32),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    kategori.namaKategori,
+                                    textAlign: TextAlign.center,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      fontSize: screenWidth * 0.03,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.teal,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -335,157 +601,184 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-            const SizedBox(height: 16),
-
-            // For You Section
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                'RECOMMENDED PRODUCTS',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF2E7D32),
-                ),
+            const SizedBox(height: 20),
+            Text(
+              'RECOMMENDED PRODUCTS',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontSize: screenWidth * 0.05,
+                fontWeight: FontWeight.w600,
+                color: Colors.teal,
               ),
             ),
+            const SizedBox(height: 10),
             FutureBuilder<List<Barang>>(
               future: apiClient.getBarang(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 4,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+                      ),
+                    ),
+                  );
                 } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.redAccent,
+                        size: 40,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Gagal memuat produk.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.redAccent,
+                          fontSize: screenWidth * 0.04,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('Tidak ada barang'));
+                  return Text(
+                    'Tidak ada barang',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey,
+                      fontSize: screenWidth * 0.04,
+                    ),
+                    textAlign: TextAlign.center,
+                  );
                 }
 
                 final barangList = snapshot.data!
                     .where((barang) => barang.statusBarang == 'tersedia')
                     .toList();
                 if (barangList.isEmpty) {
-                  return const Center(child: Text('Tidak ada barang tersedia'));
+                  return Text(
+                    'Tidak ada barang tersedia',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey,
+                      fontSize: screenWidth * 0.04,
+                    ),
+                    textAlign: TextAlign.center,
+                  );
                 }
 
-                return Container(
-                  padding: const EdgeInsets.all(8.0),
-                  child: GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12.0,
-                      mainAxisSpacing: 12.0,
-                      childAspectRatio: 0.7,
-                    ),
-                    itemCount: barangList.length,
-                    itemBuilder: (context, index) {
-                      final barang = barangList[index];
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  BarangDetailScreen(id: barang.idBarang),
-                            ),
-                          );
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12.0,
+                    mainAxisSpacing: 12.0,
+                    childAspectRatio: 0.7,
+                  ),
+                  itemCount: barangList.length,
+                  itemBuilder: (context, index) {
+                    final barang = barangList[index];
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                BarangDetailScreen(id: barang.idBarang),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: ClipRRect(
-                                  borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(12),
-                                  ),
-                                  child: barang.gambar.isNotEmpty
-                                      ? Image.network(
-                                          'http://192.168.170.241:8000/storage/${barang.gambar[0].gambarBarang}',
-                                          fit: BoxFit.cover,
-                                          width: double.infinity,
-                                          errorBuilder:
-                                              (context, error, stackTrace) =>
-                                                  Icon(Icons.broken_image,
-                                                      size: 50,
-                                                      color: Colors.grey[400]),
-                                        )
-                                      : Icon(
-                                          Icons.image_not_supported,
-                                          size: 50,
+                        );
+                      },
+                      child: Card(
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(12),
+                                ),
+                                child: barang.gambar.isNotEmpty
+                                    ? Image.network(
+                                        'http://10.32.250.133:8000/storage/gambar/${barang.gambar[0].gambarBarang}',
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Icon(
+                                          Icons.broken_image,
+                                          size: screenWidth * 0.1,
                                           color: Colors.grey[400],
                                         ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      barang.namaBarang,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14,
-                                        color: Colors.grey[900],
+                                      )
+                                    : Icon(
+                                        Icons.image_not_supported,
+                                        size: screenWidth * 0.1,
+                                        color: Colors.grey[400],
                                       ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Rp ${barang.hargaBarang.toStringAsFixed(0)}',
-                                      style: TextStyle(
-                                        color: Colors.green[700],
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
                               ),
-                            ],
-                          ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    barang.namaBarang,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: screenWidth * 0.035,
+                                      color: Colors.black87,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Rp ${barang.hargaBarang.toStringAsFixed(0)}',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: Colors.teal,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: screenWidth * 0.035,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 );
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                  // Logika View All
-                },
+                onPressed: () {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2E7D32),
+                  backgroundColor: Colors.teal,
+                  foregroundColor: Colors.white,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(12),
                   ),
+                  elevation: 5,
                 ),
-                child: const Text(
+                child: Text(
                   'View All Recommendations',
-                  style: TextStyle(
+                  style: theme.textTheme.bodyMedium?.copyWith(
                     color: Colors.white,
-                    fontSize: 16,
+                    fontSize: screenWidth * 0.04,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -507,245 +800,321 @@ class BarangDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Detail Barang',
-          style: TextStyle(
+          style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
             color: Colors.white,
+            fontSize: screenWidth * 0.045,
           ),
         ),
-        backgroundColor: const Color(0xFF2E7D32),
-        elevation: 6,
-        shadowColor: Colors.green.withValues(alpha: 0.3),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.green, Colors.teal],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 0,
       ),
-      body: FutureBuilder<Barang>(
-        future: apiClient.getBarangById(id),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData) {
-            return const Center(child: Text('Barang tidak ditemukan'));
-          }
-
-          final barang = snapshot.data!;
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: 250,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.white, Color(0xFFE0F7FA)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: FutureBuilder<Barang>(
+          future: apiClient.getBarangById(id),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 4,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        barang.gambar.isNotEmpty
-                            ? Image.network(
-                                'http://192.168.170.241:8000/storage/${barang.gambar[0].gambarBarang}',
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Container(color: Colors.grey[300]),
-                              )
-                            : Container(color: Colors.grey[300]),
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Container(
-                            height: 100,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.black.withValues(alpha: 0.7),
-                                  Colors.transparent,
-                                ],
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
+                ),
+              );
+            } else if (snapshot.hasError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      color: Colors.redAccent,
+                      size: 40,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Gagal memuat barang.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.redAccent,
+                        fontSize: screenWidth * 0.04,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            } else if (!snapshot.hasData) {
+              return Center(
+                child: Text(
+                  'Barang tidak ditemukan',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey,
+                    fontSize: screenWidth * 0.04,
+                  ),
+                ),
+              );
+            }
+
+            final barang = snapshot.data!;
+            return SingleChildScrollView(
+              padding: EdgeInsets.all(screenWidth * 0.05),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Card(
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(15),
+                      child: Stack(
+                        fit: StackFit.passthrough,
+                        children: [
+                          barang.gambar.isNotEmpty
+                              ? Image.network(
+                                  'http://10.32.250.133:8000/storage/gambar/${barang.gambar[0].gambarBarang}',
+                                  fit: BoxFit.cover,
+                                  height: 250,
+                                  width: double.infinity,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Container(
+                                    height: 250,
+                                    color: Colors.grey[300],
+                                    child: Icon(
+                                      Icons.broken_image,
+                                      size: screenWidth * 0.1,
+                                      color: Colors.grey[400],
+                                    ),
+                                  ),
+                                )
+                              : Container(
+                                  height: 250,
+                                  color: Colors.grey[300],
+                                  child: Icon(
+                                    Icons.image_not_supported,
+                                    size: screenWidth * 0.1,
+                                    color: Colors.grey[400],
+                                  ),
+                                ),
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                              height: 100,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.black.withValues(),
+                                    Colors.transparent,
+                                  ],
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  barang.namaBarang,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[900],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Rp ${barang.hargaBarang.toStringAsFixed(0)}',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        color: Color(0xFF2E7D32),
-                        fontWeight: FontWeight.w600,
+                        ],
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.green[100],
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        barang.statusBarang,
-                        style: const TextStyle(
-                          color: Color(0xFF2E7D32),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(Icons.security, size: 20, color: Colors.grey[600]),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Garansi: ${barang.statusGaransi}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Deskripsi',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[800],
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  barang.deskripsiBarang,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[700],
-                    height: 1.6,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                if (barang.transaksiPenitipan.penitip != null) ...[
+                  const SizedBox(height: 16),
                   Text(
-                    'Penitip',
-                    style: TextStyle(
-                      fontSize: 18,
+                    barang.namaBarang,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontSize: screenWidth * 0.06,
                       fontWeight: FontWeight.w600,
-                      color: Colors.grey[800],
+                      color: Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundColor: const Color(0xFF2E7D32),
+                      Text(
+                        'Rp ${barang.hargaBarang.toStringAsFixed(0)}',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontSize: screenWidth * 0.05,
+                          color: Colors.teal,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.teal.shade100,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                         child: Text(
-                          barang.transaksiPenitipan.penitip!.namaPenitip[0],
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                          barang.statusBarang,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.teal,
+                            fontWeight: FontWeight.w600,
+                            fontSize: screenWidth * 0.03,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Nama: ${barang.transaksiPenitipan.penitip!.namaPenitip}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[800],
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              Icon(Icons.star,
-                                  size: 16, color: Colors.yellow[700]),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${barang.transaksiPenitipan.penitip!.rataRating}',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.security,
+                        size: screenWidth * 0.05,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Garansi: ${barang.statusGaransi}',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: screenWidth * 0.04,
+                          color: Colors.grey[600],
+                        ),
                       ),
                     ],
                   ),
-                ] else ...[
+                  const SizedBox(height: 20),
                   Text(
-                    'Penitip: Tidak tersedia',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[600],
+                    'Deskripsi',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontSize: screenWidth * 0.045,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  Text(
+                    barang.deskripsiBarang,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontSize: screenWidth * 0.035,
+                      color: Colors.grey[700],
+                      height: 1.6,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  if (barang.transaksiPenitipan.penitip != null) ...[
+                    Text(
+                      'Penitip',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontSize: screenWidth * 0.045,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: screenWidth * 0.05,
+                          backgroundColor: Colors.teal.shade100,
+                          child: Text(
+                            barang.transaksiPenitipan.penitip!.namaPenitip[0],
+                            style: TextStyle(
+                              color: Colors.teal,
+                              fontWeight: FontWeight.bold,
+                              fontSize: screenWidth * 0.04,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Nama: ${barang.transaksiPenitipan.penitip!.namaPenitip}',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontSize: screenWidth * 0.04,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.star,
+                                  size: screenWidth * 0.04,
+                                  color: Colors.yellow[700],
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${barang.transaksiPenitipan.penitip!.rataRating}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontSize: screenWidth * 0.035,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    Text(
+                      'Penitip: Tidak tersedia',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontSize: screenWidth * 0.04,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 5,
+                      ),
+                      child: Text(
+                        'View Details',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.white,
+                          fontSize: screenWidth * 0.04,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                 ],
-                const SizedBox(height: 24),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Logika View Details
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2E7D32),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                    child: const Text(
-                      'View Details',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
-          );
-        },
+              ),
+            );
+          },
+        ),
       ),
     );
   }

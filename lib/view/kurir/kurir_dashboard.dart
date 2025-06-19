@@ -35,7 +35,7 @@ class _KurirDashboardState extends State<KurirDashboard> {
       isLoadingProfile = true;
     });
 
-    if (role != 'Kurir') {
+    if (role != 'kurir') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Hanya kurir yang dapat mengakses halaman ini')),
@@ -86,9 +86,19 @@ class _KurirDashboardState extends State<KurirDashboard> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal logout: $e')),
-      );
+      // Hapus token lokal meskipun server gagal
+      await apiClient.clearToken();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Gagal logout dari server: $e. Logout lokal dilakukan.')),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+        );
+      }
     }
   }
 

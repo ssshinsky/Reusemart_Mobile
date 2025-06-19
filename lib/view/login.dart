@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../services/api_client.dart';
-import 'kurir/kurir_dashboard.dart';
-import '../main.dart'; // HomeScreen
+import 'penitip/penitip_profile_page.dart';
+import 'pembeli/pembeli_profile_page.dart';
+import 'kurir/kurir_dashboard.dart'; // Pastikan import ini ada
+import '../main.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -41,8 +43,7 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       final role = result['role'];
-      // Validasi role sesuai dengan pilihan dropdown
-      if ((selectedRole == 'Kurir' && role != 'Kurir') ||
+      if ((selectedRole == 'Kurir' && role != 'kurir') ||
           (selectedRole == 'Pembeli' && role != 'pembeli') ||
           (selectedRole == 'Penitip' && role != 'penitip') ||
           (selectedRole == 'Organisasi' && role != 'organisasi')) {
@@ -55,7 +56,8 @@ class _LoginPageState extends State<LoginPage> {
           name: 'LoginPage',
         );
 
-        if (role == 'Kurir') {
+        final user = result['user'];
+        if (role == 'kurir') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const KurirDashboard()),
@@ -66,7 +68,7 @@ class _LoginPageState extends State<LoginPage> {
             MaterialPageRoute(
               builder: (context) => HomeScreen(
                 role: role,
-                user: result['user'],
+                user: user,
               ),
             ),
           );
@@ -121,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                       color: Colors.green[700],
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.green.withValues(),
+                          color: Colors.green.withOpacity(0.3),
                           blurRadius: 10,
                           spreadRadius: 2,
                         ),

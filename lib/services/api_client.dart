@@ -1,14 +1,17 @@
 import 'dart:convert';
-import 'dart:developer' as developer; // Added import
+import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
+import 'package:reusemart_mobile/models/pembeli.dart';
+import 'package:reusemart_mobile/models/penitip.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/barang.dart';
 import '../models/pegawai.dart';
 import '../models/kategori.dart';
+import '../models/top_seller.dart';
 import '../models/transaksi_pembelian.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://192.168.170.241:8000/api';
+  static const String baseUrl = 'http://10.32.250.133:8000/api';
   String? _token;
 
   Future<void> _ensureTokenLoaded() async {
@@ -36,21 +39,51 @@ class ApiClient {
     await _ensureTokenLoaded();
     return {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
       if (_token != null) 'Authorization': 'Bearer $_token',
     };
+  }
+
+  Future<Map<String, dynamic>> getTopSeller() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/top-seller'),
+        headers: await _headers,
+      );
+
+      developer.log(
+        'Top Seller Response: ${response.statusCode} - ${response.body}',
+        name: 'ApiClient',
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {
+          'last_month': data['last_month'],
+          'top_seller': data['top_seller'] != null
+              ? TopSeller.fromJson(data['top_seller'])
+              : null,
+        };
+      } else {
+        throw Exception('Failed to load top seller: ${response.statusCode}');
+      }
+    } catch (e) {
+      developer.log('Top Seller Error: $e', name: 'ApiClient');
+      throw Exception('Error fetching top seller: $e');
+    }
   }
 
   Future<List<Barang>> getBarang() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/barang/allProduct'),
+        Uri.parse('$baseUrl/barang'),
         headers: await _headers,
       );
       if (response.statusCode == 200) {
-        final List jsonResponse = jsonDecode(response.body);
+        List jsonResponse = jsonDecode(response.body);
         return jsonResponse.map((data) => Barang.fromJson(data)).toList();
       } else {
-        throw Exception('Failed to load barang (${response.statusCode})');
+        throw Exception('Failed to load barang: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Error getting barang: $e');
@@ -60,16 +93,16 @@ class ApiClient {
   Future<Barang> getBarangById(int id) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/barang/detail/$id'),
+        Uri.parse('$baseUrl/barang/$id'),
         headers: await _headers,
       );
       if (response.statusCode == 200) {
         return Barang.fromJson(jsonDecode(response.body));
       } else {
-        throw Exception('Failed to load barang (${response.statusCode})');
+        throw Exception('Failed to load barang: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error getting barang by ID: $e');
+      throw Exception('Error getting barang: $e');
     }
   }
 
@@ -94,7 +127,10 @@ class ApiClient {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/login'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: jsonEncode({
           'email': email,
           'password': password,
@@ -110,7 +146,7 @@ class ApiClient {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('role', data['role']);
           await prefs.setString('user', jsonEncode(data['user']));
-          if (data['role'] == 'Kurir' && data['user']['id'] != null) {
+          if (data['role'] == 'kurir' && data['user']['id'] != null) {
             await prefs.setInt('id_pegawai', data['user']['id']);
           } else {
             await prefs.remove('id_pegawai');
@@ -147,6 +183,148 @@ class ApiClient {
       }
     } catch (e) {
       throw Exception('Error adding to cart: $e');
+    }
+  }
+
+  Future<Penitipp> getPenitipById(int id) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/penitip/$id'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        return Penitipp.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Failed to load penitip (${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Error getting penitip: $e');
+    }
+  }
+
+  Future<Penitipp> getPenitipProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/penitip/profile'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        return Penitipp.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Failed to load profile (${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Error getting profile: $e');
+    }
+  }
+
+  Future<List<ConsignmentHistory>> getConsignmentHistoryById(int id) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/penitip/$id/history'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        final List jsonResponse = jsonDecode(response.body);
+        return jsonResponse
+            .map((data) => ConsignmentHistory.fromJson(data))
+            .toList();
+      } else {
+        throw Exception('Failed to load history (${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Error getting consignment history: $e');
+    }
+  }
+
+  Future<List<ConsignmentHistory>> getConsignmentHistory() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/penitip/history'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        final List jsonResponse = jsonDecode(response.body);
+        return jsonResponse
+            .map((data) => ConsignmentHistory.fromJson(data))
+            .toList();
+      } else {
+        throw Exception('Failed to load history (${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Error getting consignment history: $e');
+    }
+  }
+
+  Future<Pembeli> getPembeliById(int id) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/pembeli/$id'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        return Pembeli.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Failed to load pembeli (${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Error getting pembeli: $e');
+    }
+  }
+
+  Future<Pembeli> getPembeliProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/pembeli/profile'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        return Pembeli.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Failed to load profile (${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Error getting profile: $e');
+    }
+  }
+
+  Future<List<PurchaseHistory>> getPurchaseHistoryById(int id) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/pembeli/$id/history'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        final List jsonResponse = jsonDecode(response.body);
+        return jsonResponse
+            .map((data) => PurchaseHistory.fromJson(data))
+            .toList();
+      } else {
+        throw Exception(
+            'Failed to load purchase history (${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error getting purchase history: $e');
+    }
+  }
+
+  Future<List<PurchaseHistory>> getPurchaseHistory() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/pembeli/history'),
+        headers: await _headers,
+      );
+      if (response.statusCode == 200) {
+        final List jsonResponse = jsonDecode(response.body);
+        return jsonResponse
+            .map((data) => PurchaseHistory.fromJson(data))
+            .toList();
+      } else {
+        throw Exception(
+            'Failed to load purchase history (${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error getting purchase history: $e');
     }
   }
 
