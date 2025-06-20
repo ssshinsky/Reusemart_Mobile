@@ -11,7 +11,7 @@ import '../models/top_seller.dart';
 import '../models/transaksi_pembelian.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://10.32.250.133:8000/api';
+  static const String baseUrl = 'http://192.168.100.65:8000/api';
   String? _token;
 
   Future<void> _ensureTokenLoaded() async {

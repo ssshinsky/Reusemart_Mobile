@@ -316,7 +316,7 @@ class _ConsignmentHistoryPageState extends State<ConsignmentHistoryPage> {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: Colors.teal.withValues(),
+                      color: Colors.teal.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
