@@ -30,7 +30,7 @@ class Barang {
     this.tanggalBerakhir,
     required this.perpanjangan,
     required this.gambar,
-    required this.transaksiPenitipan,
+    required this.transaksiPenitipan, //hapus required kalau bisa NULL
   });
 
   factory Barang.fromJson(Map<String, dynamic> json) {
@@ -50,6 +50,11 @@ class Barang {
       perpanjangan: json['perpanjangan'],
       gambar: (json['gambar'] as List).map((g) => Gambar.fromJson(g)).toList(),
       transaksiPenitipan: TransaksiPenitipan.fromJson(json['transaksi_penitipan']),
+      
+      //kalau tidak mengganggu fungsi hapus aja
+//       transaksiPenitipan: json['transaksi_penitipan'] != null
+//           ? TransaksiPenitipan.fromJson(json['transaksi_penitipan'])
+//           : null, // Handle null
     );
   }
 }
@@ -80,7 +85,8 @@ class TransaksiPenitipan {
   final int? idHunter;
   final int idPenitip;
   final DateTime tanggalPenitipan;
-  final Penitip? penitip; // Bisa null
+  final DateTime? tanggalBerakhir; 
+  final Penitip? penitip; 
 
   TransaksiPenitipan({
     required this.idTransaksiPenitipan,
@@ -88,6 +94,7 @@ class TransaksiPenitipan {
     this.idHunter,
     required this.idPenitip,
     required this.tanggalPenitipan,
+    this.tanggalBerakhir, 
     this.penitip,
   });
 
@@ -98,7 +105,8 @@ class TransaksiPenitipan {
       idHunter: json['id_hunter'],
       idPenitip: json['id_penitip'],
       tanggalPenitipan: DateTime.parse(json['tanggal_penitipan']),
-      penitip: json['penitip'] != null ? Penitip.fromJson(json['penitip']) : null, // Handle null
+      tanggalBerakhir: json['tanggal_berakhir'] != null ? DateTime.parse(json['tanggal_berakhir']) : null,
+      penitip: json['penitip'] != null ? Penitip.fromJson(json['penitip']) : null,
     );
   }
 }

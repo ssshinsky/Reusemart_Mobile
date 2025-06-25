@@ -14,8 +14,9 @@ dependencies:
   flutter_svg: ^2.0.9
   carousel_slider: ^5.0.0
   google_fonts: ^6.2.1
-  shared_preferences: ^2.2.2
   intl: ^0.20.2
+  cupertino_icons: ^1.0.6
+  shared_preferences: ^2.2.3
   # path: ^1.8.0
 
 dev_dependencies:
@@ -26,8 +27,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  # Tidak perlu menambahkan fonts untuk Material Icons
-  # Jika menggunakan font kustom lain, tambahkan di sini
+  
   assets:
-    # Tambahkan aset lain jika ada, misalnya gambar
     - assets/images/carousel1.png
+    - assets/images/logoNoBg.png
+    - assets/images/logo.png
