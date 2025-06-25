@@ -9,11 +9,11 @@ class Barang {
   final String deskripsiBarang;
   final String statusGaransi;
   final String statusBarang;
-  final DateTime? tanggalGaransiBerakhir;
+  final DateTime? tanggalGaransi;
   final DateTime? tanggalBerakhir;
   final int perpanjangan;
   final List<Gambar> gambar;
-  final TransaksiPenitipan? transaksiPenitipan; 
+  final TransaksiPenitipan transaksiPenitipan;
 
   Barang({
     required this.idBarang,
@@ -26,11 +26,11 @@ class Barang {
     required this.deskripsiBarang,
     required this.statusGaransi,
     required this.statusBarang,
-    this.tanggalGaransiBerakhir, // Diperbarui
+    this.tanggalGaransi,
     this.tanggalBerakhir,
     required this.perpanjangan,
     required this.gambar,
-    this.transaksiPenitipan, // Bisa null
+    required this.transaksiPenitipan, //hapus required kalau bisa NULL
   });
 
   factory Barang.fromJson(Map<String, dynamic> json) {
@@ -45,14 +45,16 @@ class Barang {
       deskripsiBarang: json['deskripsi_barang'],
       statusGaransi: json['status_garansi'],
       statusBarang: json['status_barang'],
-      // Perbarui parsing tanggal_garansi_berakhir
-      tanggalGaransiBerakhir: json['tanggal_garansi_berakhir'] != null ? DateTime.parse(json['tanggal_garansi_berakhir']) : null,
+      tanggalGaransi: json['tanggal_garansi'] != null ? DateTime.parse(json['tanggal_garansi']) : null,
       tanggalBerakhir: json['tanggal_berakhir'] != null ? DateTime.parse(json['tanggal_berakhir']) : null,
       perpanjangan: json['perpanjangan'],
       gambar: (json['gambar'] as List).map((g) => Gambar.fromJson(g)).toList(),
-      transaksiPenitipan: json['transaksi_penitipan'] != null
-          ? TransaksiPenitipan.fromJson(json['transaksi_penitipan'])
-          : null, // Handle null
+      transaksiPenitipan: TransaksiPenitipan.fromJson(json['transaksi_penitipan']),
+      
+      //kalau tidak mengganggu fungsi hapus aja
+//       transaksiPenitipan: json['transaksi_penitipan'] != null
+//           ? TransaksiPenitipan.fromJson(json['transaksi_penitipan'])
+//           : null, // Handle null
     );
   }
 }
