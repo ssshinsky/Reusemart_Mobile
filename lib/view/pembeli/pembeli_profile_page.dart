@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:reusemart_mobile/services/api_client.dart';
 import 'package:reusemart_mobile/models/pembeli.dart';
+import 'package:reusemart_mobile/view/pembeli/merchandise_catalog_screen.dart';
 
 class PembeliProfilePage extends StatelessWidget {
   final ApiClient apiClient;
@@ -225,6 +226,28 @@ class PembeliProfilePage extends StatelessWidget {
                           ),
                         ],
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    icon: Icon(Icons.card_giftcard, color: Colors.white),
+                    label: Text('Lihat Katalog Merchandise'),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MerchandiseCatalogScreen(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      foregroundColor: Colors.white,
+                      minimumSize: Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      elevation: 5,
                     ),
                   ),
                 ],

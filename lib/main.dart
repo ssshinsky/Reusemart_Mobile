@@ -1,166 +1,41 @@
-// lib/main.dart
-
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reusemart_mobile/services/api_client.dart';
 import 'package:reusemart_mobile/models/barang.dart';
 import 'package:reusemart_mobile/models/kategori.dart';
-import 'package:reusemart_mobile/auth/login_screen.dart'; // Menggunakan yang ini
+import 'package:reusemart_mobile/models/top_seller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:reusemart_mobile/hunter/hunter_dashboard_screen.dart';
 import 'package:reusemart_mobile/hunter/commission_detail_screen.dart';
-import 'package:reusemart_mobile/pembeli/merchandise_catalog_screen.dart';
-import 'package:reusemart_mobile/pembeli/merchandise_detail_screen.dart';
-import 'package:reusemart_mobile/models/top_seller.dart'; // Model baru dari russel-merge
-import 'package:reusemart_mobile/view/penitip/consignment_history_page.dart'; // View baru dari russel-merge
-import 'package:reusemart_mobile/view/penitip/penitip_profile_page.dart'; // View baru dari russel-merge
-import 'package:reusemart_mobile/view/pembeli/pembeli_history_page.dart'; // View baru dari russel-merge
-import 'package:reusemart_mobile/view/pembeli/pembeli_profile_page.dart'; // View baru dari russel-merge
+import 'package:reusemart_mobile/view/pembeli/merchandise_catalog_screen.dart';
+import 'package:reusemart_mobile/view/pembeli/merchandise_detail_screen.dart';
+import 'package:reusemart_mobile/view/penitip/consignment_history_page.dart'; 
+import 'package:reusemart_mobile/view/penitip/penitip_profile_page.dart'; 
+import 'package:reusemart_mobile/view/pembeli/pembeli_history_page.dart'; 
+import 'package:reusemart_mobile/view/pembeli/pembeli_profile_page.dart'; 
+import 'package:reusemart_mobile/view/login.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key}); // Tambahkan super.key
-
+  const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'ReuseMart Mobile',
       theme: ThemeData(
-        primarySwatch: Colors.green, // Warna utama tetap hijau
+        primarySwatch: Colors.green,
         textTheme: GoogleFonts.poppinsTextTheme(),
       ),
-      home: const HomeScreen(), // Halaman awal aplikasi setelah merge
-      routes: {
-        '/login': (context) => LoginScreen(), // Rute untuk halaman Login
-
-        // Rute untuk setiap jenis user setelah login - sebagian besar akan ditangani HomeScreen,
-        // tapi rute ini masih relevan untuk navigasi `pushReplacementNamed` dari LoginScreen
-        '/admin_dashboard': (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
-          final String userName = args?['nama_pegawai'] ?? 'Admin';
-          return TempDashboardScreen(userType: 'Admin', userName: userName); // Tetap gunakan TempDashboardScreen untuk role non-penitip/pembeli yang belum diimplementasikan di bottom nav
-        },
-        '/home_pembeli': (context) {
-          // Akan dialihkan ke HomeScreen dengan role pembeli
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
-          return HomeScreen(role: 'pembeli', user: args);
-        },
-        '/home_penitip': (context) {
-          // Akan dialihkan ke HomeScreen dengan role penitip
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
-          return HomeScreen(role: 'penitip', user: args);
-        },
-        // Rute untuk role lain yang masih pakai TempDashboardScreen (sementara)
-        '/home_kurir': (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
-          final String userName = args?['nama_pegawai'] ?? 'Kurir';
-          return TempDashboardScreen(userType: 'Kurir', userName: userName);
-        },
-        '/home_organisasi': (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
-          final String userName = args?['nama_organisasi'] ?? 'Organisasi';
-          return TempDashboardScreen(userType: 'Organisasi', userName: userName);
-        },
-        '/home_cs': (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
-          final String userName = args?['nama_pegawai'] ?? 'Customer Service';
-          return TempDashboardScreen(userType: 'Customer Service', userName: userName);
-        },
-        '/home_gudang': (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
-          final String userName = args?['nama_pegawai'] ?? 'Gudang';
-          return TempDashboardScreen(userType: 'Gudang', userName: userName);
-        },
-        '/home_hunter': (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
-          return HunterDashboardScreen(userData: args ?? {});
-        },
-        '/commission_detail': (context) {
-          final commissionId = ModalRoute.of(context)!.settings.arguments as int;
-          return CommissionDetailScreen(commissionId: commissionId);
-        },
-        // Rute MerchandiseCatalogScreen dan MerchandiseDetailScreen tetap ada
-        '/merchandise_catalog': (context) => MerchandiseCatalogScreen(), // Tambah rute eksplisit jika diperlukan
-        '/merchandise_detail': (context) {
-          final merchandiseId = ModalRoute.of(context)!.settings.arguments as int;
-          return MerchandiseDetailScreen(merchandiseId: merchandiseId);
-        },
-      },
+      home: const HomeScreen(),
     );
   }
 }
 
-// Widget Placeholder untuk Dashboard Setelah Login (dari mobile_test, dipertahankan untuk role selain pembeli/penitip)
-class TempDashboardScreen extends StatelessWidget {
-  final String userType;
-  final String userName;
-
-  const TempDashboardScreen({super.key, required this.userType, required this.userName});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('$userType Dashboard'),
-        backgroundColor: const Color(0xFF2E7D32),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Selamat datang,',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.normal),
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                '$userName!', // Menampilkan nama user
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: const Color(0xFF2E7D32)),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Ini adalah halaman khusus untuk $userType.',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey[700]),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 40),
-              ElevatedButton(
-                onPressed: () async {
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.remove('authToken');
-                  await prefs.remove('userType');
-                  await prefs.remove('userData');
-                  Navigator.of(context).pushReplacementNamed('/login');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-                  textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const Text('Logout'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-
-// HomeScreen dari russel-merge, diadaptasi
 class HomeScreen extends StatefulWidget {
   final String? role;
   final Map<String, dynamic>? user;
@@ -181,23 +56,19 @@ class _HomeScreenState extends State<HomeScreen> {
     final role = _currentRole ?? widget.role?.toLowerCase();
     final user = _currentUser ?? widget.user;
 
-    // Menggunakan MerchandiseCatalogScreen untuk pembeli di Home
-    if (role == 'pembeli' && user != null) {
-      return [
-        MerchandiseCatalogScreen(), // Halaman katalog merchandise
-        PembeliHistoryPage(apiClient: apiClient, pembeliId: user['id_pembeli'] ?? 0), // Memastikan id_pembeli ada
-        PembeliProfilePage(apiClient: apiClient, pembeliId: user['id_pembeli'] ?? 0),
-      ];
-    }
-    // Menggunakan ConsignmentHistoryPage untuk penitip di Home
     if (role == 'penitip' && user != null) {
       return [
-        const HomeContent(), // Tampilan default Home jika belum ada halaman spesifik untuk penitip
-        ConsignmentHistoryPage(apiClient: apiClient, penitipId: user['id_penitip'] ?? 0), // Memastikan id_penitip ada
-        PenitipProfilePage(apiClient: apiClient, penitipId: user['id_penitip'] ?? 0),
+        const HomeContent(),
+        ConsignmentHistoryPage(apiClient: apiClient, penitipId: user['id']),
+        PenitipProfilePage(apiClient: apiClient, penitipId: user['id']),
+      ];
+    } else if (role == 'pembeli' && user != null) {
+      return [
+        const HomeContent(),
+        PembeliHistoryPage(apiClient: apiClient, pembeliId: user['id']),
+        PembeliProfilePage(apiClient: apiClient, pembeliId: user['id']),
       ];
     }
-    // Default untuk guest atau role lain yang tidak punya bottom nav
     return [const HomeContent()];
   }
 
@@ -219,9 +90,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<Map<String, dynamic>> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('authToken'); // Menggunakan authToken
-    final role = prefs.getString('userType'); // Menggunakan userType
-    final userJson = prefs.getString('userData'); // Menggunakan userData
+    final token = prefs.getString('token');
+    final role = prefs.getString('role');
+    final userJson = prefs.getString('user');
     final user = userJson != null ? jsonDecode(userJson) : null;
 
     return {
@@ -232,20 +103,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('authToken');
-    await prefs.remove('userType');
-    await prefs.remove('userData'); // Hapus juga data user
-
+    await apiClient.clearToken();
     if (mounted) {
       setState(() {
         _currentRole = null;
         _currentUser = null;
-        _selectedIndex = 0; // Reset index ke home
       });
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LoginScreen()), // Kembali ke LoginScreen
+        MaterialPageRoute(builder: (context) => const LoginPage()),
       );
     }
   }
@@ -262,15 +128,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
     final role = _currentRole ?? widget.role?.toLowerCase();
     final user = _currentUser ?? widget.user;
-
-    // Perbaikan AppBar untuk tampilan logo dan teks
     return Scaffold(
       appBar: AppBar(
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
-          // Menggunakan Image.asset dari mobile_test untuk logo
-          child: Image.asset(
-            'assets/images/logoNoBg.png',
+          child: Image.network(
+            'https://via.placeholder.com/40',
             fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) => const Icon(
               Icons.store,
@@ -279,11 +142,22 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         title: Text(
-          user != null ? 'Selamat Datang, ${user['nama_pegawai'] ?? user['nama_penitip'] ?? user['nama_pembeli'] ?? 'Pengguna'}' : 'ReuseMart', // Lebih dinamis
+          user != null ? 'Selamat Datang, ${user['nama']}' : 'ReuseMart',
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
             color: Colors.white,
             fontSize: screenWidth * 0.04,
+        //   child: Image.asset(
+        //     'assets/images/logoNoBg.png',
+        //     fit: BoxFit.contain,
+        //   ),
+        // ),
+        // title: Text(
+        //   'ReuseMart',
+        //   style: TextStyle(
+        //     fontWeight: FontWeight.w600,
+        //     fontSize: 24,
+        //     color: Color(0xFF2E7D32),
           ),
         ),
         actions: [
@@ -294,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
               } else {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()), // Panggil LoginScreen
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
                 );
               }
             },
@@ -311,14 +185,13 @@ class _HomeScreenState extends State<HomeScreen> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF2E7D32), Colors.teal], // Warna green dan teal
+              colors: [Colors.green, Colors.teal],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
           ),
         ),
-        elevation: 6, // Tetap gunakan elevation
-        shadowColor: const Color.fromARGB(255, 61, 61, 61).withOpacity(0.3), // Tetap gunakan shadowColor
+        elevation: 0,
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -330,37 +203,37 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: _pages[_selectedIndex],
       ),
-      bottomNavigationBar: (role == 'penitip' || role == 'pembeli') && user != null
-          ? BottomNavigationBar(
-              currentIndex: _selectedIndex,
-              onTap: _onItemTapped,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
-                  label: 'Home',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.history),
-                  label: 'History',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person),
-                  label: 'Profil',
-                ),
-              ],
-              selectedItemColor: Colors.teal,
-              unselectedItemColor: Colors.grey,
-              showUnselectedLabels: true,
-              backgroundColor: Colors.white,
-              elevation: 5,
-              type: BottomNavigationBarType.fixed,
-            )
-          : null,
+      bottomNavigationBar:
+          (role == 'penitip' || role == 'pembeli') && user != null
+              ? BottomNavigationBar(
+                  currentIndex: _selectedIndex,
+                  onTap: _onItemTapped,
+                  items: const [
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.home),
+                      label: 'Home',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.history),
+                      label: 'History',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.person),
+                      label: 'Profil',
+                    ),
+                  ],
+                  selectedItemColor: Colors.teal,
+                  unselectedItemColor: Colors.grey,
+                  showUnselectedLabels: true,
+                  backgroundColor: Colors.white,
+                  elevation: 5,
+                  type: BottomNavigationBarType.fixed,
+                )
+              : null,
     );
   }
 }
 
-// HomeContent dari russel-merge
 class HomeContent extends StatelessWidget {
   const HomeContent({super.key});
 
@@ -370,25 +243,6 @@ class HomeContent extends StatelessWidget {
     final theme = Theme.of(context);
     final apiClient = ApiClient();
 
-    // Banners (tetap dari mobile_test untuk consistency)
-    final List<Map<String, String>> banners = [
-      {
-        'image': 'https://via.placeholder.com/400x150',
-        'title': 'Recycle for a Better Tomorrow',
-        'subtitle': 'From You, For All of Us',
-      },
-      {
-        'image': 'https://via.placeholder.com/400x150/FF5733',
-        'title': 'Big Sale 50% Off',
-        'subtitle': 'Grab your favorites now!',
-      },
-      {
-        'image': 'https://via.placeholder.com/400x150/33FF57',
-        'title': 'New Arrivals',
-        'subtitle': 'Check out the latest collections!',
-      },
-    ];
-
     return SingleChildScrollView(
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
@@ -396,7 +250,6 @@ class HomeContent extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-            // TOP SELLER Section (dari russel-merge)
             Card(
               elevation: 5,
               shape: RoundedRectangleBorder(
@@ -405,7 +258,7 @@ class HomeContent extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: FutureBuilder<Map<String, dynamic>>(
-                  future: apiClient.getTopSeller(), // Memanggil API Top Seller
+                  future: apiClient.getTopSeller(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
@@ -440,7 +293,7 @@ class HomeContent extends StatelessWidget {
                         ],
                       );
                     } else if (!snapshot.hasData ||
-                        snapshot.data!['top_seller'] == null) {
+                        snapshot.data![''] == null) {
                       return Text(
                         'Belum ada Top Seller untuk ${snapshot.data?['last_month'] ?? 'bulan ini'}.',
                         style: theme.textTheme.bodyMedium?.copyWith(
@@ -461,8 +314,7 @@ class HomeContent extends StatelessWidget {
                           borderRadius: BorderRadius.circular(50),
                           child: topSeller.profilPict != null
                               ? Image.network(
-                                  // Asumsi path gambar di storageBaseUrl/foto_penitip/
-                                  '${ApiClient.storageBaseUrl}/foto_penitip/${topSeller.profilPict}',
+                                  topSeller.profilPict!,
                                   width: screenWidth * 0.15,
                                   height: screenWidth * 0.15,
                                   fit: BoxFit.cover,
@@ -510,7 +362,8 @@ class HomeContent extends StatelessWidget {
                                 children: [
                                   Text(
                                     topSeller.namaPenitip,
-                                    style: theme.textTheme.titleMedium?.copyWith(
+                                    style:
+                                        theme.textTheme.titleMedium?.copyWith(
                                       fontSize: screenWidth * 0.045,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black87,
@@ -546,6 +399,13 @@ class HomeContent extends StatelessWidget {
                                   ),
                                 ],
                               ),
+                              // Text(
+                              //   '${topSeller.soldCount} items sold | Rp ${topSeller.totalSales.toStringAsFixed(0)}',
+                              //   style: theme.textTheme.bodySmall?.copyWith(
+                              //     fontSize: screenWidth * 0.03,
+                              //     color: Colors.grey[600],
+                              //   ),
+                              // ),
                             ],
                           ),
                         ),
@@ -556,97 +416,98 @@ class HomeContent extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            // Carousel Banner (dari mobile_test)
-            Container(
-              margin: EdgeInsets.symmetric(vertical: 16.0, horizontal: 0.0), // Padding disesuaikan
-              child: CarouselSlider.builder(
-                itemCount: banners.length,
-                itemBuilder: (context, index, realIndex) {
-                  final banner = banners[index];
-                  return Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
+            Card(
+              elevation: 5,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(15),
+                child: CarouselSlider.builder(
+                  itemCount: 3,
+                  itemBuilder: (context, index, realIndex) {
+                    final banner = {
+                      0: {
+                        'image': 'assets/images/',
+                        'title': 'Recycle for a Better Tomorrow',
+                        'subtitle': 'From You, For All of Us',
+                      },
+                      1: {
+                        'image': 'https://via.placeholder.com/400x150/FF5733',
+                        'title': 'Big Sale 50% Off',
+                        'subtitle': 'Grab your favorites now!',
+                      },
+                      2: {
+                        'image': 'https://via.placeholder.com/400x150/33FF57',
+                        'title': 'New Arrivals',
+                        'subtitle': 'Check out the latest collections!',
+                      },
+                    }[index]!;
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.network(
+                          banner['image']!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(color: Colors.grey[300]),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.black.withValues(),
+                                Colors.transparent,
+                              ],
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                            ),
+                          ),
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                banner['title']!,
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  color: Colors.white,
+                                  fontSize: screenWidth * 0.05,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                banner['subtitle']!,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: Colors.white70,
+                                  fontSize: screenWidth * 0.035,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Image.network(
-                            banner['image']!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(color: Colors.grey[300]),
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.black.withOpacity(0.7),
-                                  Colors.transparent,
-                                ],
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                              ),
-                            ),
-                            padding: const EdgeInsets.all(20.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Text(
-                                  banner['title']!,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: screenWidth * 0.05, // Menyesuaikan ukuran font
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  banner['subtitle']!,
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: screenWidth * 0.035, // Menyesuaikan ukuran font
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-                options: CarouselOptions(
-                  height: 200,
-                  autoPlay: true,
-                  autoPlayInterval: const Duration(seconds: 4),
-                  enlargeCenterPage: true,
-                  viewportFraction: 0.9,
-                  enableInfiniteScroll: true,
+                    );
+                  },
+                  options: CarouselOptions(
+                    height: 200,
+                    autoPlay: true,
+                    autoPlayInterval: const Duration(seconds: 4),
+                    enlargeCenterPage: true,
+                    viewportFraction: 0.9,
+                    enableInfiniteScroll: true,
+                  ),
                 ),
               ),
             ),
-
-            // Kategori Section
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.0), // Padding disesuaikan
-              child: Text(
-                'BROWSE BY CATEGORY',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontSize: screenWidth * 0.05,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF2E7D32),
-                ),
+            const SizedBox(height: 20),
+            Text(
+              'BROWSE BY CATEGORY',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontSize: screenWidth * 0.05,
+                fontWeight: FontWeight.w600,
+                color: Colors.teal,
               ),
             ),
             const SizedBox(height: 10),
@@ -654,11 +515,45 @@ class HomeContent extends StatelessWidget {
               future: apiClient.getKategori(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 4,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+                      ),
+                    ),
+                  );
                 } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.redAccent,
+                        size: 40,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Gagal memuat kategori.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.redAccent,
+                          fontSize: screenWidth * 0.04,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('Tidak ada kategori'));
+                  return Text(
+                    'Tidak ada kategori',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey,
+                      fontSize: screenWidth * 0.04,
+                    ),
+                    textAlign: TextAlign.center,
+                  );
                 }
 
                 final kategoriList = snapshot.data!;
@@ -672,10 +567,8 @@ class HomeContent extends StatelessWidget {
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 6.0),
                         child: GestureDetector(
-                          onTap: () {
-                            // Logika klik kategori
-                          },
-                          child: Card( // Menggunakan Card dari russel-merge
+                          onTap: () {},
+                          child: Card(
                             elevation: 3,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -688,12 +581,13 @@ class HomeContent extends StatelessWidget {
                                 children: [
                                   CircleAvatar(
                                     radius: 25,
-                                    backgroundColor: const Color(0xFF2E7D32), // Warna green
+                                    backgroundColor: Colors.teal.shade100,
                                     child: Text(
                                       kategori.namaKategori[0],
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color: Colors.teal,
                                         fontWeight: FontWeight.bold,
+                                        fontSize: screenWidth * 0.04,
                                       ),
                                     ),
                                   ),
@@ -701,10 +595,10 @@ class HomeContent extends StatelessWidget {
                                   Text(
                                     kategori.namaKategori,
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 12,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      fontSize: screenWidth * 0.03,
                                       fontWeight: FontWeight.w500,
-                                      color: Color(0xFF2E7D32), // Warna green
+                                      color: Colors.teal,
                                     ),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
@@ -720,18 +614,13 @@ class HomeContent extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 16),
-
-            // Recommended Products Section (dari mobile_test, disatukan dengan gaya russel-merge)
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.0), // Padding disesuaikan
-              child: Text(
-                'RECOMMENDED PRODUCTS',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontSize: screenWidth * 0.05,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF2E7D32),
-                ),
+            const SizedBox(height: 20),
+            Text(
+              'RECOMMENDED PRODUCTS',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontSize: screenWidth * 0.05,
+                fontWeight: FontWeight.w600,
+                color: Colors.teal,
               ),
             ),
             const SizedBox(height: 10),
@@ -739,16 +628,59 @@ class HomeContent extends StatelessWidget {
               future: apiClient.getBarang(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 4,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+                      ),
+                    ),
+                  );
                 } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.redAccent,
+                        size: 40,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Gagal memuat produk.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.redAccent,
+                          fontSize: screenWidth * 0.04,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('Tidak ada barang'));
+                  return Text(
+                    'Tidak ada barang',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey,
+                      fontSize: screenWidth * 0.04,
+                    ),
+                    textAlign: TextAlign.center,
+                  );
                 }
 
-                final barangList = snapshot.data!.where((barang) => barang.statusBarang == 'tersedia').toList(); // Filter 'tersedia'
+                final barangList = snapshot.data!
+                    .where((barang) => barang.statusBarang == 'tersedia')
+                    .toList();
                 if (barangList.isEmpty) {
-                  return const Center(child: Text('Tidak ada barang tersedia'));
+                  return Text(
+                    'Tidak ada barang tersedia',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey,
+                      fontSize: screenWidth * 0.04,
+                    ),
+                    textAlign: TextAlign.center,
+                  );
                 }
 
                 return GridView.builder(
@@ -768,11 +700,12 @@ class HomeContent extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => BarangDetailScreen(id: barang.idBarang),
+                            builder: (context) =>
+                                BarangDetailScreen(id: barang.idBarang),
                           ),
                         );
                       },
-                      child: Card( // Menggunakan Card dari russel-merge
+                      child: Card(
                         elevation: 3,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -787,14 +720,16 @@ class HomeContent extends StatelessWidget {
                                 ),
                                 child: barang.gambar.isNotEmpty
                                     ? Image.network(
-                                        // Menggunakan ApiClient.storageBaseUrl untuk konsistensi
                                         '${ApiClient.storageBaseUrl}/gambar_barang/${barang.gambar[0].gambarBarang}',
                                         fit: BoxFit.cover,
                                         width: double.infinity,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          print('Error loading image for ${barang.namaBarang}: $error');
-                                          return Icon(Icons.broken_image, size: screenWidth * 0.1, color: Colors.grey[400]);
-                                        },
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Icon(
+                                          Icons.broken_image,
+                                          size: screenWidth * 0.1,
+                                          color: Colors.grey[400],
+                                        ),
                                       )
                                     : Icon(
                                         Icons.image_not_supported,
@@ -813,7 +748,7 @@ class HomeContent extends StatelessWidget {
                                     style: theme.textTheme.bodyMedium?.copyWith(
                                       fontWeight: FontWeight.w600,
                                       fontSize: screenWidth * 0.035,
-                                      color: Colors.grey[900],
+                                      color: Colors.black87,
                                     ),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
@@ -822,7 +757,7 @@ class HomeContent extends StatelessWidget {
                                   Text(
                                     'Rp ${barang.hargaBarang.toStringAsFixed(0)}',
                                     style: theme.textTheme.bodySmall?.copyWith(
-                                      color: const Color(0xFF2E7D32), // Warna green
+                                      color: Colors.teal,
                                       fontWeight: FontWeight.w600,
                                       fontSize: screenWidth * 0.035,
                                     ),
@@ -841,11 +776,9 @@ class HomeContent extends StatelessWidget {
             const SizedBox(height: 20),
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                  // Logika View All Recommendations
-                },
+                onPressed: () {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2E7D32), // Warna green
+                  backgroundColor: Colors.teal,
                   foregroundColor: Colors.white,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -872,273 +805,258 @@ class HomeContent extends StatelessWidget {
   }
 }
 
-// BarangDetailScreen dari mobile_test, diadaptasi dengan gaya russel-merge
 class BarangDetailScreen extends StatelessWidget {
   final int id;
   final ApiClient apiClient = ApiClient();
 
-  BarangDetailScreen({super.key, required this.id}); // Tambahkan super.key
+  // BarangDetailScreen({super.key, required this.id});
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   final screenWidth = MediaQuery.of(context).size.width;
+  //   final theme = Theme.of(context);
+
+  BarangDetailScreen({required this.id});
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Detail Barang',
-          style: theme.textTheme.titleMedium?.copyWith(
+          style: TextStyle(
             fontWeight: FontWeight.w600,
             color: Colors.white,
-            fontSize: screenWidth * 0.045,
           ),
         ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF2E7D32), Colors.teal], // Warna green dan teal
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        elevation: 6, // Tetap gunakan elevation
-        shadowColor: Colors.green.withOpacity(0.3), // Tetap gunakan shadowColor
+        backgroundColor: Color(0xFF2E7D32),
+        elevation: 6,
+        shadowColor: Colors.green.withOpacity(0.3),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.white, Color(0xFFE0F7FA)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: FutureBuilder<Barang>(
-          future: apiClient.getBarangById(id),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData) {
-              return const Center(child: Text('Barang tidak ditemukan'));
-            }
+      body: FutureBuilder<Barang>(
+        future: apiClient.getBarangById(id),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData) {
+            return Center(child: Text('Barang tidak ditemukan'));
+          }
 
-            final barang = snapshot.data!;
-            return SingleChildScrollView(
-              padding: EdgeInsets.all(screenWidth * 0.05),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Card( // Menggunakan Card dari russel-merge
-                    elevation: 5,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: Stack(
-                        fit: StackFit.passthrough,
-                        children: [
-                          barang.gambar.isNotEmpty // Cek apakah ada gambar
-                              ? CarouselSlider.builder( // Carousel dari mobile_test
-                                  itemCount: barang.gambar.length,
-                                  itemBuilder: (context, index, realIndex) {
-                                    final gambar = barang.gambar[index];
-                                    return Image.network(
-                                      '${ApiClient.storageBaseUrl}/gambar_barang/${gambar.gambarBarang}',
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        print('Error loading carousel image for ${barang.namaBarang} - ${gambar.gambarBarang}: $error');
-                                        return Container(
-                                          color: Colors.grey[300],
-                                          child: Icon(Icons.image_not_supported, size: 80, color: Colors.grey[400]),
-                                        );
-                                      },
-                                    );
-                                  },
-                                  options: CarouselOptions(
-                                    height: 250,
-                                    autoPlay: barang.gambar.length > 1,
-                                    autoPlayInterval: const Duration(seconds: 4),
-                                    enlargeCenterPage: true,
-                                    viewportFraction: 1.0,
-                                    enableInfiniteScroll: barang.gambar.length > 1,
-                                  ),
-                                )
-                              : Container( // Tampilkan placeholder jika tidak ada gambar sama sekali
-                                  height: 250,
-                                  color: Colors.grey[300],
-                                  child: Center(child: Icon(Icons.image_not_supported, size: 80, color: Colors.grey[400])),
-                                ),
-                        ],
+          final barang = snapshot.data!;
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 250,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: barang.gambar.isNotEmpty // Cek apakah ada gambar
+                        ? CarouselSlider.builder(
+                            itemCount: barang.gambar.length, // Jumlah gambar yang tersedia
+                            itemBuilder: (context, index, realIndex) {
+                              final gambar = barang.gambar[index];
+                              return Image.network(
+                                '${ApiClient.storageBaseUrl}/gambar_barang/${gambar.gambarBarang}',
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                errorBuilder: (context, error, stackTrace) {
+                                  print('Error loading carousel image for ${barang.namaBarang} - ${gambar.gambarBarang}: $error');
+                                  return Container(
+                                    color: Colors.grey[300],
+                                    child: Icon(Icons.image_not_supported, size: 80, color: Colors.grey[400]),
+                                  );
+                                },
+                              );
+                            },
+                            options: CarouselOptions(
+                              height: 250, // Sesuaikan tinggi dengan container
+                              autoPlay: barang.gambar.length > 1, // Auto-play jika lebih dari 1 gambar
+                              autoPlayInterval: Duration(seconds: 4),
+                              enlargeCenterPage: true,
+                              viewportFraction: 1.0, // Tampilkan 1 gambar penuh
+                              enableInfiniteScroll: barang.gambar.length > 1,
+                            ),
+                          )
+                        : Container( // Tampilkan placeholder jika tidak ada gambar sama sekali
+                            color: Colors.grey[300],
+                            child: Center(child: Icon(Icons.image_not_supported, size: 80, color: Colors.grey[400])),
+                          ),
+                  ),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  barang.namaBarang,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[900],
+                  ),
+                ),
+                SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Rp ${barang.hargaBarang.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Color(0xFF2E7D32),
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    barang.namaBarang,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontSize: screenWidth * 0.06,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[900], // Warna tetap grey[900]
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Rp ${barang.hargaBarang.toStringAsFixed(0)}',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontSize: screenWidth * 0.05,
-                          color: const Color(0xFF2E7D32), // Warna green
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.green[100],
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        barang.statusBarang,
+                        style: TextStyle(
+                          color: Color(0xFF2E7D32),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.green[100],
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          barang.statusBarang,
-                          style: const TextStyle(
-                            color: Color(0xFF2E7D32), // Warna green
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Icon(Icons.security, size: screenWidth * 0.05, color: Colors.grey[600]),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Garansi: ${barang.statusGaransi}',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontSize: screenWidth * 0.04,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Deskripsi',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontSize: screenWidth * 0.045,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[800],
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    barang.deskripsiBarang,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontSize: screenWidth * 0.035,
-                      color: Colors.grey[700],
-                      height: 1.6,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  if (barang.transaksiPenitipan?.penitip != null) ...[
+                  ],
+                ),
+                SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(Icons.security, size: 20, color: Colors.grey[600]),
+                    SizedBox(width: 8),
                     Text(
-                      'Penitip',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontSize: screenWidth * 0.045,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: screenWidth * 0.05,
-                          backgroundColor: const Color(0xFF2E7D32), // Warna green
-                          child: Text(
-                            barang.transaksiPenitipan!.penitip!.namaPenitip[0],
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: screenWidth * 0.04,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${barang.transaksiPenitipan!.penitip?.namaPenitip}',
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.04,
-                                color: Colors.grey[800],
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Icon(Icons.star, size: screenWidth * 0.04, color: Colors.yellow[700]),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${barang.transaksiPenitipan!.penitip?.rataRating ?? 0.0}',
-                                  style: TextStyle(
-                                    fontSize: screenWidth * 0.035,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ] else ...[
-                    Text(
-                      'Penitip: Tidak tersedia',
+                      'Garansi: ${barang.statusGaransi}',
                       style: TextStyle(
-                        fontSize: screenWidth * 0.04,
+                        fontSize: 16,
                         color: Colors.grey[600],
                       ),
                     ),
                   ],
-                  const SizedBox(height: 24),
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Logika View Details
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2E7D32), // Warna green
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Deskripsi',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  barang.deskripsiBarang,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[700],
+                    height: 1.6,
+                  ),
+                ),
+                SizedBox(height: 20),
+                if (barang.transaksiPenitipan?.penitip != null) ...[
+                  Text(
+                    'Penitip',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundColor: Color(0xFF2E7D32),
+                        child: Text(
+                          barang.transaksiPenitipan!.penitip!.namaPenitip[0],
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        elevation: 5,
                       ),
-                      child: Text(
-                        'View Details',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white,
-                          fontSize: screenWidth * 0.04,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${barang.transaksiPenitipan!.penitip?.namaPenitip}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[800],
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Icon(Icons.star,
+                                  size: 16, color: Colors.yellow[700]),
+                              SizedBox(width: 4),
+                              Text(
+                                '${barang.transaksiPenitipan!.penitip?.rataRating ?? 0.0}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  Text(
+                    'Penitip: Tidak tersedia',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+                SizedBox(height: 24),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Logika View Details
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF2E7D32),
+                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: Text(
+                      'View Details',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                ],
-              ),
-            );
-          },
-        ),
+                ),
+                SizedBox(height: 16),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../services/api_client.dart';
-import 'penitip/penitip_profile_page.dart';
-import 'pembeli/pembeli_profile_page.dart';
-import 'kurir/kurir_dashboard.dart'; // Pastikan import ini ada
+import '../view/kurir/kurir_dashboard.dart'; 
+import '../hunter/hunter_dashboard_screen.dart';
 import '../main.dart';
 
 class LoginPage extends StatefulWidget {
@@ -26,7 +25,6 @@ class _LoginPageState extends State<LoginPage> {
         _passwordController.text.trim().isEmpty) {
       setState(() {
         _errorMessage = 'Email dan password tidak boleh kosong';
-        _isLoading = false;
       });
       return;
     }
@@ -42,32 +40,61 @@ class _LoginPageState extends State<LoginPage> {
         _passwordController.text.trim(),
       );
 
-      final role = result['role'];
-      if ((selectedRole == 'Kurir' && role != 'kurir') ||
-          (selectedRole == 'Pembeli' && role != 'pembeli') ||
-          (selectedRole == 'Penitip' && role != 'penitip') ||
-          (selectedRole == 'Organisasi' && role != 'organisasi')) {
-        throw Exception('Role tidak sesuai dengan kredensial');
+      final roleFromApi = result['role']; // contoh: 'pegawai', 'pembeli'
+      final user = result['user'];
+      
+      bool isRoleValid = false;
+
+      if (selectedRole == 'Hunter') {
+        if (roleFromApi == 'pegawai' && user['id_role'] == 6) {
+          isRoleValid = true;
+        }
+      } else if (selectedRole == 'Kurir') {
+        if (roleFromApi == 'pegawai' && user['id_role'] == 5) {
+          isRoleValid = true;
+        }
+      } else if (selectedRole == 'Pembeli') {
+        if (roleFromApi == 'pembeli') {
+          isRoleValid = true;
+        }
+      } else if (selectedRole == 'Penitip') {
+        if (roleFromApi == 'penitip') {
+          isRoleValid = true;
+        }
+      }
+
+      if (!isRoleValid) {
+        throw Exception('Role tidak sesuai dengan kredensial. Email=${_emailController.text}, Role API=$roleFromApi, ID Role=${user['id_role']}');
       }
 
       if (mounted) {
         developer.log(
-          'Login berhasil: Email=${_emailController.text}, Role=$role',
+          'Login berhasil: Email=${_emailController.text}, Role API=$roleFromApi, ID Role=${user['id_role']}',
           name: 'LoginPage',
         );
 
-        final user = result['user'];
-        if (role == 'kurir') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const KurirDashboard()),
-          );
+        if (roleFromApi == 'pegawai') {
+          if (user['id_role'] == 5) { // Kurir
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const KurirDashboard()),
+            );
+          } else if (user['id_role'] == 6) { // Hunter
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HunterDashboardScreen(userData: user),
+              ),
+            );
+          } else {
+            throw Exception('Role pegawai tidak didukung di aplikasi mobile.');
+          }
         } else {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => HomeScreen(
-                role: role,
+                role: roleFromApi,
                 user: user,
               ),
             ),
@@ -164,30 +191,39 @@ class _LoginPageState extends State<LoginPage> {
                           horizontal: 16.0, vertical: 8.0),
                       child: Row(
                         children: [
-                          DropdownButton<String>(
-                            value: selectedRole,
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                selectedRole = newValue;
-                              });
-                            },
-                            items: const <String>['Pembeli', 'Penitip', 'Kurir']
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                            underline: const SizedBox(),
-                            icon: const Icon(Icons.arrow_drop_down,
-                                color: Colors.green),
+                          Expanded(
+                            flex: 3,
+                            child: DropdownButton<String>(
+                              value: selectedRole,
+                              isExpanded: true,
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  selectedRole = newValue;
+                                });
+                              },
+                              items: const <String>[
+                                'Pembeli',
+                                'Penitip',
+                                'Kurir',
+                                'Hunter',
+                              ].map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(),
+                              underline: const SizedBox(),
+                              icon: const Icon(Icons.arrow_drop_down,
+                                  color: Colors.green),
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
+                            flex: 7,
                             child: TextFormField(
                               controller: _emailController,
                               decoration: const InputDecoration(
-                                hintText: 'Email/Username',
+                                hintText: 'Email',
                                 prefixIcon:
                                     Icon(Icons.email, color: Colors.green),
                                 border: InputBorder.none,

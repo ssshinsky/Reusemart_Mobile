@@ -3,9 +3,10 @@ import 'package:reusemart_mobile/services/api_client.dart';
 import 'package:reusemart_mobile/models/komisi_history.dart'; 
 
 class CommissionDetailScreen extends StatefulWidget {
+  final int hunterId;
   final int commissionId;
 
-  CommissionDetailScreen({required this.commissionId});
+  CommissionDetailScreen({required this.hunterId, required this.commissionId});
 
   @override
   CommissionDetailScreenState createState() => CommissionDetailScreenState();
@@ -18,7 +19,7 @@ class CommissionDetailScreenState extends State<CommissionDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _commissionDetailFuture = _apiClient.getCommissionDetail(widget.commissionId);
+    _commissionDetailFuture = _apiClient.getCommissionDetail(widget.hunterId, widget.commissionId);
   }
 
   String _formatCurrency(double amount) {
