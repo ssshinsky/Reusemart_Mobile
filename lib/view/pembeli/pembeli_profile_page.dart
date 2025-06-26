@@ -236,7 +236,7 @@ class PembeliProfilePage extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => MerchandiseCatalogScreen(),
+                          builder: (context) => MerchandiseCatalogScreen(pembeliId: pembeliId),
                         ),
                       );
                     },
