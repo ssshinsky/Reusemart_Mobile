@@ -720,7 +720,7 @@ class HomeContent extends StatelessWidget {
                                 ),
                                 child: barang.gambar.isNotEmpty
                                     ? Image.network(
-                                        '${ApiClient.storageBaseUrl}/gambar_barang/${barang.gambar[0].gambarBarang}',
+                                        '${ApiClient.storageBaseUrl}/gambar/${barang.gambar[0].gambarBarang}',
                                         fit: BoxFit.cover,
                                         width: double.infinity,
                                         errorBuilder:
@@ -871,7 +871,7 @@ class BarangDetailScreen extends StatelessWidget {
                             itemBuilder: (context, index, realIndex) {
                               final gambar = barang.gambar[index];
                               return Image.network(
-                                '${ApiClient.storageBaseUrl}/gambar_barang/${gambar.gambarBarang}',
+                                '${ApiClient.storageBaseUrl}/gambar/${gambar.gambarBarang}',
                                 fit: BoxFit.cover,
                                 width: double.infinity,
                                 errorBuilder: (context, error, stackTrace) {

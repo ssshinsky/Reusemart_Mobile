@@ -201,7 +201,7 @@ class HunterDashboardScreenState extends State<HunterDashboardScreen> {
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
                                   child: Image.network(
-                                    '${ApiClient.storageBaseUrl}/gambar_barang/${commission.gambarBarang}',
+                                    '${ApiClient.storageBaseUrl}/gambar/${commission.gambarBarang}',
                                     width: 60,
                                     height: 60,
                                     fit: BoxFit.cover,

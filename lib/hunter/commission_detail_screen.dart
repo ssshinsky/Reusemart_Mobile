@@ -73,7 +73,7 @@ class CommissionDetailScreenState extends State<CommissionDetailScreen> {
                     borderRadius: BorderRadius.circular(12),
                     child: detail.gambarBarang != null
                         ? Image.network(
-                            '${ApiClient.storageBaseUrl}/gambar_barang/${detail.gambarBarang}', // Sesuaikan subfolder jika perlu
+                            '${ApiClient.storageBaseUrl}/gambar/${detail.gambarBarang}', // Sesuaikan subfolder jika perlu
                             fit: BoxFit.cover,
                             width: double.infinity,
                             errorBuilder: (context, error, stackTrace) =>
