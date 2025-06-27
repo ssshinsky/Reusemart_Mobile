@@ -334,7 +334,7 @@ class _ConsignmentHistoryPageState extends State<ConsignmentHistoryPage> {
                     borderRadius: BorderRadius.circular(12),
                     child: Image.network(
                       // transaction.barang[0].gambar!,
-                      'http://10.53.4.143:8000/storage/gambar/${transaction.barang[0].gambar}',
+                      'http://10.0.2.2:8000/storage/gambar/${transaction.barang[0].gambar}',
                       height: 200,
                       width: double.infinity,
                       fit: BoxFit.cover,
