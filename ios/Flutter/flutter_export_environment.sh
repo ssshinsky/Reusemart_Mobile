@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=D:\src\flutter"
-export "FLUTTER_APPLICATION_PATH=C:\Users\acer\Documents\sems 6\P3L\TUBES REUSEMART\reusemart_mobile\reusemart_mobile"
+export "FLUTTER_ROOT=C:\flutter\src\flutter"
+export "FLUTTER_APPLICATION_PATH=F:\Sem 6\P3L - Proyek Pengembangan Perangkat Lunak\1 - Testing\Reusemart_Mobile"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_TARGET=lib\main.dart"
 export "FLUTTER_BUILD_DIR=build"

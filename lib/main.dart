@@ -293,7 +293,7 @@ class HomeContent extends StatelessWidget {
                         ],
                       );
                     } else if (!snapshot.hasData ||
-                        snapshot.data![''] == null) {
+                        snapshot.data!['top_seller'] == null) {
                       return Text(
                         'Belum ada Top Seller untuk ${snapshot.data?['last_month'] ?? 'bulan ini'}.',
                         style: theme.textTheme.bodyMedium?.copyWith(

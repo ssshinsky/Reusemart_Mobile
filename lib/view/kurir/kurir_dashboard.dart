@@ -250,8 +250,10 @@ class _KurirDashboardState extends State<KurirDashboard> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    if (transaksi.statusTransaksi ==
-                                        'Sedang Dikirim')
+                                    if ((
+                                      transaksi.statusTransaksi == 'Sedang Dikirim') ||
+                                      (transaksi.statusTransaksi == 'In Delivery')
+                                    )
                                       ElevatedButton(
                                         onPressed: () async {
                                           final confirm =
