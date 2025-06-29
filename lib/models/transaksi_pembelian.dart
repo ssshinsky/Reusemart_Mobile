@@ -1,3 +1,6 @@
+int parseInt(dynamic value) => int.tryParse(value?.toString() ?? '') ?? 0;
+double parseDouble(dynamic value) => double.tryParse(value?.toString() ?? '') ?? 0.0;
+
 class TransaksiPembelian {
   final int idPembelian;
   final String statusTransaksi;
@@ -5,6 +8,7 @@ class TransaksiPembelian {
   final String tanggalPembelian;
   final String metodePengiriman;
   final String noResi;
+  final int idKurir;
 
   const TransaksiPembelian({
     required this.idPembelian,
@@ -13,18 +17,18 @@ class TransaksiPembelian {
     required this.tanggalPembelian,
     required this.metodePengiriman,
     required this.noResi,
+    required this.idKurir,
   });
 
   factory TransaksiPembelian.fromJson(Map<String, dynamic> json) {
     return TransaksiPembelian(
-      idPembelian: _toInt(json['id_pembelian']),
+      idPembelian: parseInt(json['id_pembelian']),
       statusTransaksi: json['status_transaksi']?.toString() ?? '',
-      totalHarga: (json['total_harga'] is int)
-          ? (json['total_harga'] as int).toDouble()
-          : double.parse(json['total_harga'].toString()),
+      totalHarga: parseDouble(json['total_harga']),
       tanggalPembelian: json['tanggal_pembelian']?.toString() ?? '',
       metodePengiriman: json['metode_pengiriman']?.toString() ?? '',
       noResi: json['no_resi']?.toString() ?? '',
+      idKurir: parseInt(json['id_kurir']),
     );
   }
 
@@ -36,12 +40,7 @@ class TransaksiPembelian {
       'tanggal_pembelian': tanggalPembelian,
       'metode_pengiriman': metodePengiriman,
       'no_resi': noResi,
+      'id_kurir': idKurir,
     };
-  }
-
-  // Helper untuk memastikan parsing int yang aman
-  static int _toInt(dynamic value) {
-    if (value is int) return value;
-    return int.tryParse(value.toString()) ?? 0;
   }
 }

@@ -1,3 +1,5 @@
+int parseInt(dynamic value) => int.tryParse(value?.toString() ?? '') ?? 0;
+
 class Pegawai {
   final int idPegawai;
   final int idRole;
@@ -21,8 +23,8 @@ class Pegawai {
 
   factory Pegawai.fromJson(Map<String, dynamic> json) {
     return Pegawai(
-      idPegawai: json['id_pegawai'] ?? 0,
-      idRole: json['id_role'] ?? 0,
+      idPegawai: parseInt(json['id_pegawai']),
+      idRole: parseInt(json['id_role']),
       namaPegawai: json['nama_pegawai'] ?? '',
       alamatPegawai: json['alamat_pegawai'] ?? '',
       tanggalLahir: json['tanggal_lahir'] ?? '',

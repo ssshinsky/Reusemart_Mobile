@@ -1,3 +1,8 @@
+// Utility functions for safe parsing
+int parseInt(dynamic value) => int.tryParse(value?.toString() ?? '') ?? 0;
+double parseDouble(dynamic value) => double.tryParse(value?.toString() ?? '') ?? 0.0;
+
+/// Data model for Penitipp (Consignor)
 class Penitipp {
   final int idPenitip;
   final String nama;
@@ -21,14 +26,14 @@ class Penitipp {
 
   factory Penitipp.fromJson(Map<String, dynamic> json) {
     return Penitipp(
-      idPenitip: json['id_penitip'] as int,
-      nama: json['nama'] as String,
-      email: json['email'] as String,
-      saldo: (json['saldo'] as num).toDouble(),
-      poin: json['poin'] as int,
-      rataRating: (json['rata_rating'] as num).toDouble(),
-      banyakRating: json['banyak_rating'] as int,
-      profilPict: json['profil_pict'] as String?,
+      idPenitip: parseInt(json['id_penitip']),
+      nama: json['nama']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      saldo: parseDouble(json['saldo']),
+      poin: parseInt(json['poin']),
+      rataRating: parseDouble(json['rata_rating']),
+      banyakRating: parseInt(json['banyak_rating']),
+      profilPict: json['profil_pict']?.toString(),
     );
   }
 
@@ -41,11 +46,12 @@ class Penitipp {
       poin: poin,
       rataRating: rataRating,
       banyakRating: banyakRating,
-      profilPict: profilPict,
+      profilPict: profilPict ?? this.profilPict,
     );
   }
 }
 
+/// Data model for ConsignmentHistory
 class ConsignmentHistory {
   final int idTransaksi;
   final String? tanggalPenitipan;
@@ -61,16 +67,17 @@ class ConsignmentHistory {
 
   factory ConsignmentHistory.fromJson(Map<String, dynamic> json) {
     return ConsignmentHistory(
-      idTransaksi: json['id_transaksi'] as int,
-      tanggalPenitipan: json['tanggal_penitipan'] as String?,
-      status: json['status'] as String?,
-      barang: (json['barang'] as List<dynamic>?)
-          ?.map((item) => Barangg.fromJson(item))
-          .toList() ?? [],
+      idTransaksi: parseInt(json['id_transaksi']),
+      tanggalPenitipan: json['tanggal_penitipan']?.toString(),
+      status: json['status']?.toString(),
+      barang: (json['barang'] as List<dynamic>? ?? [])
+          .map((item) => Barangg.fromJson(item))
+          .toList(),
     );
   }
 }
 
+/// Data model for Barangg (Consigned Item)
 class Barangg {
   final String? namaBarang;
   final double? hargaBarang;
@@ -90,12 +97,12 @@ class Barangg {
 
   factory Barangg.fromJson(Map<String, dynamic> json) {
     return Barangg(
-      namaBarang: json['nama_barang'] as String?,
-      hargaBarang: (json['harga_barang'] as num?)?.toDouble(),
-      status: json['status_barang'] as String?,
-      gambar: json['gambar'] as String?,
-      tanggalBerakhir: json['tanggal_berakhir'] as String?,
-      perpanjangan: json['perpanjangan'] as int?,
+      namaBarang: json['nama_barang']?.toString(),
+      hargaBarang: json['harga_barang'] != null ? parseDouble(json['harga_barang']) : null,
+      status: json['status_barang']?.toString(),
+      gambar: json['gambar']?.toString(),
+      tanggalBerakhir: json['tanggal_berakhir']?.toString(),
+      perpanjangan: json['perpanjangan'] != null ? parseInt(json['perpanjangan']) : null,
     );
   }
 }

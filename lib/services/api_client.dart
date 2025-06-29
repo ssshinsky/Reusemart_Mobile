@@ -14,8 +14,8 @@ import '../models/komisi_history.dart';
 import '../models/merchandise.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://10.0.2.2:8000/api';
-  static const String storageBaseUrl = 'http://10.0.2.2:8000/storage';
+  static const String baseUrl = 'https://store6.reuse-mart.com/api';
+  static const String storageBaseUrl = 'https://store6.reuse-mart.com/storage';
   String? _token;
 
   Future<void> _ensureTokenLoaded() async {
@@ -57,7 +57,6 @@ class ApiClient {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/top-seller'),
-        headers: await _headers,
       );
 
       developer.log(
@@ -76,7 +75,11 @@ class ApiClient {
       } else {
         throw Exception('Failed to load top seller: ${response.statusCode}');
       }
-    } catch (e) {
+    } catch (e, s) {
+
+      print('Error saat getTopSeller: $e');
+      print('Stack trace: $s');
+
       developer.log('Top Seller Error: $e', name: 'ApiClient');
       throw Exception('Error fetching top seller: $e');
     }
@@ -86,6 +89,12 @@ class ApiClient {
     final response = await http.get(Uri.parse('$baseUrl/barang'));
     if (response.statusCode == 200) {
       List jsonResponse = jsonDecode(response.body);
+      
+      final validJsonResponse = jsonResponse.where((data) {
+        final transaksiPenitipan = data['transaksi_penitipan'];
+        return transaksiPenitipan != null; // Hanya proses jika transaksi_penitipan tidak null
+      }).toList();
+      
       return jsonResponse.map((data) => Barang.fromJson(data)).toList();
     } else {
       throw Exception('Failed to load barang: ${response.statusCode}');
@@ -105,7 +114,6 @@ class ApiClient {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/kategori'),
-        headers: await _headers,
       );
       if (response.statusCode == 200) {
         final List jsonResponse = jsonDecode(response.body);
@@ -113,7 +121,11 @@ class ApiClient {
       } else {
         throw Exception('Failed to load kategori (${response.statusCode})');
       }
-    } catch (e) {
+    } catch (e, s) {
+
+      print('Error saat getTopSeller: $e');
+      print('Stack trace: $s');
+
       throw Exception('Error getting kategori: $e');
     }
   }

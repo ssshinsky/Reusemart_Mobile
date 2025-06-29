@@ -1,3 +1,6 @@
+int parseInt(dynamic value) => int.tryParse(value?.toString() ?? '') ?? 0;
+double parseDouble(dynamic value) => double.tryParse(value?.toString() ?? '') ?? 0.0;
+
 class PenitipHistory {
   final int idTransaksi;
   final String tanggalPenitipan;
@@ -10,11 +13,12 @@ class PenitipHistory {
   });
 
   factory PenitipHistory.fromJson(Map<String, dynamic> json) {
-    var barangList = json['barang'] as List;
     return PenitipHistory(
-      idTransaksi: json['id_transaksi'],
-      tanggalPenitipan: json['tanggal_penitipan'],
-      barang: barangList.map((i) => BarangHistory.fromJson(i)).toList(),
+      idTransaksi: parseInt(json['id_transaksi']),
+      tanggalPenitipan: json['tanggal_penitipan']?.toString() ?? '',
+      barang: (json['barang'] as List? ?? [])
+          .map((i) => BarangHistory.fromJson(i))
+          .toList(),
     );
   }
 }
@@ -36,11 +40,11 @@ class BarangHistory {
 
   factory BarangHistory.fromJson(Map<String, dynamic> json) {
     return BarangHistory(
-      idBarang: json['id_barang'],
-      namaBarang: json['nama_barang'],
-      statusBarang: json['status_barang'],
-      hargaBarang: (json['harga_barang'] as num).toDouble(),
-      gambar: json['gambar'],
+      idBarang: parseInt(json['id_barang']),
+      namaBarang: json['nama_barang']?.toString() ?? '',
+      statusBarang: json['status_barang']?.toString() ?? '',
+      hargaBarang: parseDouble(json['harga_barang']),
+      gambar: json['gambar']?.toString(),
     );
   }
 }

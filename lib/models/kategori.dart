@@ -9,7 +9,7 @@ class Kategori {
 
   factory Kategori.fromJson(Map<String, dynamic> json) {
     return Kategori(
-      idKategori: json['id_kategori'],
+      idKategori: int.parse((json['id_kategori'].toString())),
       namaKategori: json['nama_kategori'],
     );
   }

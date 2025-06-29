@@ -15,11 +15,11 @@ class TopSeller {
 
   factory TopSeller.fromJson(Map<String, dynamic> json) {
     return TopSeller(
-      idPenitip: json['id_penitip'],
+      idPenitip: int.parse(json['id_penitip'].toString()),
       namaPenitip: json['nama_penitip'],
       profilPict: json['profil_pict'],
-      soldCount: json['sold_count'],
-      totalSales: json['total_sales'].toDouble(),
+      soldCount: (json['sold_count'] as num).toInt(),
+      totalSales: (json['total_sales'] as num).toDouble(),
     );
   }
 }

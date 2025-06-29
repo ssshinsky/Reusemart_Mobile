@@ -1,3 +1,11 @@
+int parseInt(dynamic value) => int.tryParse(value?.toString() ?? '') ?? 0;
+bool parseBool(dynamic value) {
+  if (value is bool) return value;
+  if (value is int) return value == 1;
+  if (value is String) return value == '1' || value.toLowerCase() == 'true';
+  return false;
+}
+
 class Alamat {
   final int idAlamat;
   final int idPembeli;
@@ -29,12 +37,8 @@ class Alamat {
 
   factory Alamat.fromJson(Map<String, dynamic> json) {
     return Alamat(
-      idAlamat: json['id_alamat'] is String
-          ? int.parse(json['id_alamat'])
-          : json['id_alamat'] ?? 0,
-      idPembeli: json['id_pembeli'] is String
-          ? int.parse(json['id_pembeli'])
-          : json['id_pembeli'] ?? 0,
+      idAlamat: parseInt(json['id_alamat']),
+      idPembeli: parseInt(json['id_pembeli']),
       namaOrang: json['nama_orang'] ?? '',
       labelAlamat: json['label_alamat'] ?? '',
       alamatLengkap: json['alamat_lengkap'] ?? '',
@@ -42,15 +46,12 @@ class Alamat {
       kabupaten: json['kabupaten'] ?? '',
       noTelepon: json['no_telepon'],
       kodePos: json['kode_pos'],
-      isDefault: (json['is_default'] is int
-              ? json['is_default'] == 1
-              : json['is_default']) ??
-          false,
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'])
+      isDefault: parseBool(json['is_default']),
+      createdAt: (json['created_at'] != null && json['created_at'].toString().isNotEmpty)
+          ? DateTime.tryParse(json['created_at'].toString())
           : null,
-      updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'])
+      updatedAt: (json['updated_at'] != null && json['updated_at'].toString().isNotEmpty)
+          ? DateTime.tryParse(json['updated_at'].toString())
           : null,
     );
   }

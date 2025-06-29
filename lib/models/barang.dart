@@ -1,3 +1,6 @@
+int parseInt(dynamic value) => int.tryParse(value.toString()) ?? 0;
+double parseDouble(dynamic value) => double.tryParse(value.toString()) ?? 0.0;
+
 class Barang {
   final int idBarang;
   final int idKategori;
@@ -30,31 +33,33 @@ class Barang {
     this.tanggalBerakhir,
     required this.perpanjangan,
     required this.gambar,
-    required this.transaksiPenitipan, //hapus required kalau bisa NULL
+    required this.transaksiPenitipan,
   });
 
   factory Barang.fromJson(Map<String, dynamic> json) {
     return Barang(
-      idBarang: json['id_barang'],
-      idKategori: json['id_kategori'],
-      idTransaksiPenitipan: json['id_transaksi_penitipan'],
-      kodeBarang: json['kode_barang'],
-      namaBarang: json['nama_barang'],
-      hargaBarang: (json['harga_barang'] as num).toDouble(),
-      beratBarang: (json['berat_barang'] as num).toDouble(),
-      deskripsiBarang: json['deskripsi_barang'],
-      statusGaransi: json['status_garansi'],
-      statusBarang: json['status_barang'],
-      tanggalGaransi: json['tanggal_garansi'] != null ? DateTime.parse(json['tanggal_garansi']) : null,
-      tanggalBerakhir: json['tanggal_berakhir'] != null ? DateTime.parse(json['tanggal_berakhir']) : null,
-      perpanjangan: json['perpanjangan'],
-      gambar: (json['gambar'] as List).map((g) => Gambar.fromJson(g)).toList(),
-      transaksiPenitipan: TransaksiPenitipan.fromJson(json['transaksi_penitipan']),
-      
-      //kalau tidak mengganggu fungsi hapus aja
-//       transaksiPenitipan: json['transaksi_penitipan'] != null
-//           ? TransaksiPenitipan.fromJson(json['transaksi_penitipan'])
-//           : null, // Handle null
+      idBarang: parseInt(json['id_barang']),
+      idKategori: parseInt(json['id_kategori']),
+      idTransaksiPenitipan: parseInt(json['id_transaksi_penitipan']),
+      kodeBarang: json['kode_barang'] ?? '',
+      namaBarang: json['nama_barang'] ?? '',
+      hargaBarang: parseDouble(json['harga_barang']),
+      beratBarang: parseDouble(json['berat_barang']),
+      deskripsiBarang: json['deskripsi_barang'] ?? '',
+      statusGaransi: json['status_garansi'] ?? '',
+      statusBarang: json['status_barang'] ?? '',
+      tanggalGaransi: (json['tanggal_garansi'] != null && json['tanggal_garansi'].toString().isNotEmpty)
+          ? DateTime.tryParse(json['tanggal_garansi'].toString())
+          : null,
+      tanggalBerakhir: (json['tanggal_berakhir'] != null && json['tanggal_berakhir'].toString().isNotEmpty)
+          ? DateTime.tryParse(json['tanggal_berakhir'].toString())
+          : null,
+      perpanjangan: parseInt(json['perpanjangan']),
+      gambar: (json['gambar'] as List?)
+              ?.map((g) => Gambar.fromJson(g))
+              .toList() ??
+          [],
+      transaksiPenitipan: TransaksiPenitipan.fromJson(json['transaksi_penitipan'] ?? {}),
     );
   }
 }
@@ -72,9 +77,9 @@ class Gambar {
 
   factory Gambar.fromJson(Map<String, dynamic> json) {
     return Gambar(
-      idGambar: json['id_gambar'],
-      idBarang: json['id_barang'],
-      gambarBarang: json['gambar_barang'],
+      idGambar: parseInt(json['id_gambar']),
+      idBarang: parseInt(json['id_barang']),
+      gambarBarang: json['gambar_barang'] ?? '',
     );
   }
 }
@@ -85,8 +90,8 @@ class TransaksiPenitipan {
   final int? idHunter;
   final int idPenitip;
   final DateTime tanggalPenitipan;
-  final DateTime? tanggalBerakhir; 
-  final Penitip? penitip; 
+  final DateTime? tanggalBerakhir;
+  final Penitip? penitip;
 
   TransaksiPenitipan({
     required this.idTransaksiPenitipan,
@@ -94,18 +99,20 @@ class TransaksiPenitipan {
     this.idHunter,
     required this.idPenitip,
     required this.tanggalPenitipan,
-    this.tanggalBerakhir, 
+    this.tanggalBerakhir,
     this.penitip,
   });
 
   factory TransaksiPenitipan.fromJson(Map<String, dynamic> json) {
     return TransaksiPenitipan(
-      idTransaksiPenitipan: json['id_transaksi_penitipan'],
-      idQc: json['id_qc'],
-      idHunter: json['id_hunter'],
-      idPenitip: json['id_penitip'],
-      tanggalPenitipan: DateTime.parse(json['tanggal_penitipan']),
-      tanggalBerakhir: json['tanggal_berakhir'] != null ? DateTime.parse(json['tanggal_berakhir']) : null,
+      idTransaksiPenitipan: parseInt(json['id_transaksi_penitipan']),
+      idQc: parseInt(json['id_qc']),
+      idHunter: json['id_hunter'] != null ? parseInt(json['id_hunter']) : null,
+      idPenitip: parseInt(json['id_penitip']),
+      tanggalPenitipan: DateTime.tryParse(json['tanggal_penitipan'].toString()) ?? DateTime(1970),
+      tanggalBerakhir: (json['tanggal_berakhir'] != null && json['tanggal_berakhir'].toString().isNotEmpty)
+          ? DateTime.tryParse(json['tanggal_berakhir'].toString())
+          : null,
       penitip: json['penitip'] != null ? Penitip.fromJson(json['penitip']) : null,
     );
   }
@@ -136,15 +143,15 @@ class Penitip {
 
   factory Penitip.fromJson(Map<String, dynamic> json) {
     return Penitip(
-      idPenitip: json['id_penitip'],
-      nikPenitip: json['nik_penitip'],
-      namaPenitip: json['nama_penitip'],
-      emailPenitip: json['email_penitip'],
-      noTelp: json['no_telp'],
-      alamat: json['alamat'],
-      rataRating: (json['rata_rating'] as num).toDouble(),
-      statusPenitip: json['status_penitip'],
-      saldoPenitip: (json['saldo_penitip'] as num).toDouble(),
+      idPenitip: parseInt(json['id_penitip']),
+      nikPenitip: json['nik_penitip'] ?? '',
+      namaPenitip: json['nama_penitip'] ?? '',
+      emailPenitip: json['email_penitip'] ?? '',
+      noTelp: json['no_telp'] ?? '',
+      alamat: json['alamat'] ?? '',
+      rataRating: parseDouble(json['rata_rating']),
+      statusPenitip: json['status_penitip'] ?? '',
+      saldoPenitip: parseDouble(json['saldo_penitip']),
     );
   }
 }

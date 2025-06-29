@@ -7,6 +7,7 @@ import 'package:reusemart_mobile/view/kurir/delivery_history.dart';
 import 'package:reusemart_mobile/view/login.dart';
 import 'package:reusemart_mobile/models/pegawai.dart';
 import 'package:reusemart_mobile/models/transaksi_pembelian.dart';
+import 'dart:convert';
 
 class KurirDashboard extends StatefulWidget {
   const KurirDashboard({super.key});
@@ -20,6 +21,7 @@ class _KurirDashboardState extends State<KurirDashboard> {
   Pegawai? kurir;
   String? role;
   bool isLoadingProfile = true;
+  int? idKurirLogin;
 
   @override
   void initState() {
@@ -30,15 +32,21 @@ class _KurirDashboardState extends State<KurirDashboard> {
   Future<void> _checkRoleAndLoadProfile() async {
     final prefs = await SharedPreferences.getInstance();
     final userRole = prefs.getString('role');
+    final idKurir = prefs.getInt('id_pegawai');
+    final userDataStr = prefs.getString('user');
+    Map<String, dynamic>? userData;
+    if (userDataStr != null) {
+      userData = jsonDecode(userDataStr);
+    }
     setState(() {
       role = userRole;
+      idKurirLogin = idKurir;
       isLoadingProfile = true;
     });
 
     if (role != 'kurir') {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Hanya kurir yang dapat mengakses halaman ini')),
+        const SnackBar(content: Text('Hanya kurir yang dapat mengakses halaman ini')),
       );
       Navigator.pushReplacement(
         context,
@@ -47,34 +55,21 @@ class _KurirDashboardState extends State<KurirDashboard> {
       return;
     }
 
-    try {
-      final profile = await apiClient.getProfile();
-      setState(() {
-        kurir = profile;
-        isLoadingProfile = false;
-      });
-    } catch (e) {
-      print('Gagal memuat profil: $e'); // Debug log
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal memuat profil: $e')),
+    setState(() {
+      kurir = Pegawai(
+        idPegawai: idKurir ?? 0,
+        namaPegawai: userData != null ? userData['nama'] ?? 'Kurir' : 'Kurir',
+        profilPict: null,
+        idRole: 5,
+        alamatPegawai: '',
+        tanggalLahir: '',
+        nomorTelepon: '',
+        emailPegawai: userData != null ? userData['email'] ?? '' : '',
       );
-      setState(() {
-        // ignore: prefer_typing_uninitialized_variables
-        var idRole;
-        kurir = Pegawai(
-          idPegawai: prefs.getInt('id_pegawai') ?? 0,
-          namaPegawai: 'Kurir Tidak Dikenal',
-          profilPict: null,
-          idRole: idRole,
-          alamatPegawai: '',
-          tanggalLahir: '',
-          nomorTelepon: '',
-          emailPegawai: '',
-        );
-        isLoadingProfile = false;
-      });
-    }
+      isLoadingProfile = false;
+    });
   }
+
 
   Future<void> _logout() async {
     try {
@@ -209,14 +204,24 @@ class _KurirDashboardState extends State<KurirDashboard> {
                     }
 
                     final transaksiList = snapshot.data!;
+                    final filteredList = transaksiList
+                        .where((trx) => trx.idKurir == idKurirLogin)
+                        .toList();
                     print('Transaksi aktif: $transaksiList'); // Debug log
 
+                    if (filteredList.isEmpty) {
+                      return Center(child: Text(
+                        'Tidak ada pengiriman aktif',
+                        style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey),
+                      ));
+                    }
+                    
                     return ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      itemCount: transaksiList.length,
+                      itemCount: filteredList.length,
                       itemBuilder: (context, index) {
-                        final transaksi = transaksiList[index];
+                        final transaksi = filteredList[index];
                         return Card(
                           elevation: 4,
                           margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -250,8 +255,8 @@ class _KurirDashboardState extends State<KurirDashboard> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    if ((
-                                      transaksi.statusTransaksi == 'Sedang Dikirim') ||
+                                    if (
+                                      (transaksi.statusTransaksi == 'Sedang Dikirim') ||
                                       (transaksi.statusTransaksi == 'In Delivery')
                                     )
                                       ElevatedButton(

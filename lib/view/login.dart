@@ -6,6 +6,7 @@ import 'pembeli/pembeli_profile_page.dart';
 import 'kurir/kurir_dashboard.dart';
 import 'package:reusemart_mobile/hunter/hunter_dashboard_screen.dart';
 import '../main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -44,26 +45,46 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       final role = result['role'];
-      if ((selectedRole == 'Kurir' && role != 'kurir') ||
-          (selectedRole == 'Pembeli' && role != 'pembeli') ||
-          (selectedRole == 'Penitip' && role != 'penitip') ||
-          (selectedRole == 'Hunter' && role != 'hunter')) {
-        throw Exception('Role tidak sesuai dengan kredensial');
+      final user = result['user'];
+
+      String computedRole = role.toLowerCase();
+      if (computedRole == 'pegawai' && user != null && user['id_role'] != null) {
+        if (user['id_role'].toString() == '5') {
+          computedRole = 'kurir';
+        } else if (user['id_role'].toString() == '6') {
+          computedRole = 'hunter';
+        } else {
+          throw Exception('Akun pegawai ini tidak memiliki akses aplikasi mobile');
+        }
       }
 
+      // Pakai computedRole untuk validasi
+      if ((selectedRole == 'Kurir' && computedRole != 'kurir') ||
+          (selectedRole == 'Pembeli' && computedRole != 'pembeli') ||
+          (selectedRole == 'Penitip' && computedRole != 'penitip') ||
+          (selectedRole == 'Hunter' && computedRole != 'hunter')) {
+        throw Exception('Role tidak sesuai dengan kredensial');
+      }
+      
       if (mounted) {
         developer.log(
-          'Login berhasil: Email=${_emailController.text}, Role=$role',
+          'Login berhasil: Email=${_emailController.text}, Role=$computedRole',
           name: 'LoginPage',
         );
 
-        final user = result['user'];
-        if (role == 'kurir') {
+        if (computedRole == 'kurir') {
+          final prefs = await SharedPreferences.getInstance();
+          final idKurirLogin = prefs.getInt('id_pegawai');
+          await prefs.setString('role', computedRole);
+          if (computedRole == 'kurir' || computedRole == 'hunter') {
+            final idPegawai = user['id'];
+            await prefs.setInt('id_pegawai', int.parse(idPegawai.toString()));
+          }
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const KurirDashboard()),
           );
-        } else if(role == 'hunter') {
+        } else if (computedRole == 'hunter') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => HunterDashboardScreen(userData: user)),
@@ -73,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
             context,
             MaterialPageRoute(
               builder: (context) => HomeScreen(
-                role: role,
+                role: computedRole,
                 user: user,
               ),
             ),
